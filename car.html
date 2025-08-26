@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <title id="meta-title">Detalle del vehículo</title>
+  <meta name="description" id="meta-description" content="Ficha completa del vehículo premium importado: fotos, vídeo, especificaciones, extras, precio y contacto.">
+  <meta name="robots" content="index,follow">
+
+  <!-- Social -->
+  <meta property="og:type" content="product">
+  <meta property="og:site_name" content="Tu Empresa">
+  <meta property="og:title" id="og-title" content="Coche premium — Detalle">
+  <meta property="og:description" id="og-description" content="Fotos, vídeo, especificaciones y precio del coche premium seleccionado.">
+  <meta property="og:image" id="og-image" content="https://web-coches-eta.vercel.app/og-car.jpg">
+  <meta property="og:url" id="og-url" content="https://web-coches-eta.vercel.app/car.html">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" id="twitter-title" content="Coche premium — Detalle">
+  <meta name="twitter:description" id="twitter-description" content="Fotos, vídeo, especificaciones y precio del coche premium seleccionado.">
+  <meta name="twitter:image" id="twitter-image" content="https://web-coches-eta.vercel.app/og-car.jpg">
+  <link id="canonical" rel="canonical" href="https://web-coches-eta.vercel.app/car.html">
+
+  <!-- Product price -->
+  <meta property="product:price:amount" id="meta-price-amount" content="">
+  <meta property="product:price:currency" content="EUR">
+
+  <!-- Favicons / PWA -->
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#0f172a">
+
+  <script id="car-jsonld" type="application/ld+json"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --primary:#6366F1; --primary-dark:#4F46E5;
+      --bg:#111827; --text:#F9FAFB; --muted:#9CA3AF;
+      --card:#1F2937; --border:#374151; --shadow:0 8px 24px rgba(0,0,0,.35);
+      --nav-h:64px; --nav-bg:#0f172a; --nav-border:rgba(255,255,255,.06);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    html,body{overflow-x:hidden}
+    body{font-family:Inter,system-ui,Arial,sans-serif;margin:0;background:var(--bg);color:var(--text);line-height:1.55;-webkit-tap-highlight-color:transparent}
+
+    /* Header + Drawer (idéntico a index; solo X cierra) */
+    .site-header{position:sticky; top:0; z-index:50; background:var(--nav-bg); border-bottom:1px solid var(--nav-border); backdrop-filter:blur(8px) saturate(120%)}
+    .nav-wrap{max-width:1100px;margin:0 auto;padding:12px 16px;height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .brand{color:#fff;font-weight:800;letter-spacing:.2px;text-decoration:none;font-size:clamp(1.05rem,2vw,1.2rem)}
+    .nav-desktop{display:none;gap:16px;align-items:center}
+    .nav-desktop a{text-decoration:none;color:rgba(249,250,251,.92);font-weight:600;padding:8px 10px;border-radius:10px;transition:background .2s,color .2s}
+    .nav-desktop a:hover{color:#fff;background:rgba(255,255,255,.06)}
+    .nav-toggle{width:44px;height:44px;border-radius:12px;border:1px solid var(--nav-border);background:transparent;cursor:pointer;display:grid;place-items:center;gap:4px;transition:background .2s,border .2s}
+    .nav-toggle:hover{background:rgba(255,255,255,.04)}
+    .nav-toggle .bar{width:20px;height:2px;background:#e5e7eb;display:block;border-radius:2px;transition:transform .25s ease,opacity .25s ease}
+    .nav-toggle[aria-expanded="true"] .bar:nth-child(1){transform:translateY(6px) rotate(45deg)}
+    .nav-toggle[aria-expanded="true"] .bar:nth-child(2){opacity:0}
+    .nav-toggle[aria-expanded="true"] .bar:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+    @media (min-width:900px){.nav-toggle{display:none}.nav-desktop{display:flex}}
+
+    .drawer{position:fixed;inset:0;display:grid;grid-template-columns:1fr;pointer-events:none;z-index:60}
+    .drawer-backdrop{display:none}
+    .drawer-inner{
+      align-self:start;justify-self:end;
+      width:clamp(320px,78vw,560px);
+      height:100vh;height:100svh;height:100dvh;
+      background:#0b1220;border-left:1px solid var(--nav-border);
+      box-shadow:-24px 0 48px rgba(0,0,0,.6);
+      transform:translateX(100%);transition:transform .28s ease;
+      display:flex;flex-direction:column;overflow:auto;-webkit-overflow-scrolling:touch;
+      padding:18px;padding-top:calc(16px + env(safe-area-inset-top,0px));
+    }
+    @media (min-width:600px) and (max-width:899px){.drawer-inner{width:min(88vw,560px)}}
+    .drawer.open{pointer-events:auto}
+    .drawer.open .drawer-inner{transform:translateX(0)}
+    body.nav-open{overflow:hidden;touch-action:none;overscroll-behavior:contain}
+    @media (min-width:900px){ #mobile-drawer{display:none} }
+
+    .drawer-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+    .drawer-title{color:#fff;font-weight:800;letter-spacing:.2px}
+    .drawer-close{width:40px;height:40px;border-radius:12px;border:1px solid var(--nav-border);background:#111827;color:#e5e7eb;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+    .drawer-nav{display:flex;flex-direction:column;gap:12px;padding:6px 0}
+    .drawer-link{padding:12px 14px;border-radius:12px;color:var(--text);font-weight:600;border:1px solid transparent}
+    .drawer-link:hover{background:rgba(255,255,255,.06);border-color:var(--nav-border);color:#fff}
+
+    /* Botón pill reutilizable */
+    .btn{display:inline-block;padding:12px 22px;border-radius:999px;font-weight:700;transition:.2s;text-decoration:none}
+    .btn.primary{background:var(--primary);color:#fff;box-shadow:0 6px 18px rgba(99,102,241,.25)}
+    .btn.primary:hover{background:var(--primary-dark)}
+
+    .container{max-width:1100px;margin:0 auto;padding:28px 18px}
+    h1{font-size:clamp(1.6rem,2.4vw,2.25rem);margin:0 0 18px;font-weight:800;letter-spacing:.2px;color:#fff}
+
+    /* Galería */
+    .gallery{position:relative;overflow:hidden;border-radius:16px;background:#000;box-shadow:var(--shadow);margin:18px 0 28px}
+    .slider-track{display:flex;transition:transform .35s ease-out;will-change:transform}
+    .slide{min-width:100%;height:clamp(260px,48vw,520px);object-fit:cover;user-select:none;background:#0b0b0b}
+
+    .nav-btn{position:absolute;top:50%;transform:translateY(-50%);width:56px;height:56px;border:none;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);backdrop-filter:blur(2px);cursor:pointer;transition:transform .2s, background .2s, opacity .2s;box-shadow:0 4px 16px rgba(0,0,0,.5);color:#fff;z-index:2;opacity:.95}
+    .nav-btn:hover{background:rgba(0,0,0,.7);transform:translateY(-50%) scale(1.06)}
+    .nav-prev{left:18px} .nav-next{right:18px}
+    .nav-btn svg{width:28px;height:28px;stroke:#fff;stroke-width:2.5;fill:none}
+    .nav-btn:disabled{opacity:0;pointer-events:none}
+
+    .dots{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:2}
+    .dot{width:8px;height:8px;border-radius:999px;background:rgba(255,255,255,.55);transition:transform .2s,background .2s;cursor:pointer}
+    .dot:hover{transform:scale(1.15)} .dot.active{background:#fff}
+    .counter{position:absolute; right:12px; bottom:12px; z-index:2; background:rgba(0,0,0,.55); color:#fff; font-weight:700; padding:6px 10px; border-radius:999px; backdrop-filter:blur(2px); font-size:.9rem;}
+
+    .specs, form{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:20px;margin:22px 0;border:1px solid var(--border)}
+    .specs p{margin:8px 0;color:rgba(249,250,251,.9)}
+    .specs b{color:#E5E7EB}
+    .specs h3{margin:14px 0 6px;color:#fff;font-size:1.05rem}
+    .specs .desc{margin-top:10px;padding-top:8px;border-top:1px solid var(--border);color:rgba(249,250,251,.92);white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
+
+    iframe{width:100%;height:420px;border:none;border-radius:16px;box-shadow:var(--shadow);margin:22px 0}
+
+    form h2{margin:0 0 8px;color:#fff}
+    label{font-weight:600;display:block;margin-top:10px;color:#E5E7EB}
+    input,textarea{width:100%;padding:12px 14px;margin:6px 0 12px;border:1px solid var(--border);border-radius:12px;font:inherit;background:#0B1220;color:#fff;transition:border .15s, box-shadow .15s}
+    input::placeholder, textarea::placeholder{color:var(--muted)}
+    input:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.25)}
+    button{background:var(--primary);color:#fff;border:none;border-radius:999px;padding:12px 22px;font-weight:700;cursor:pointer;transition:filter .2s, transform .05s;box-shadow:0 6px 18px rgba(99,102,241,.25)}
+    button:hover{filter:brightness(1.05)} button:active{transform:translateY(1px)}
+    #form-status{color:var(--muted);margin-top:6px}
+
+    .sticky-cta{position:fixed; left:0; right:0; bottom:0; z-index:40; background:rgba(17,24,39,.9); backdrop-filter:blur(8px); border-top:1px solid rgba(255,255,255,.06); display:none; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px;}
+    .sticky-cta b{color:#fff}
+    .sticky-cta .price{color:#E5E7EB; font-weight:700}
+    .sticky-cta .cta-btn{background:var(--primary); color:#fff; padding:12px 18px; border-radius:999px; font-weight:700; text-decoration:none; display:inline-block}
+    @media (max-width: 900px){ .sticky-cta{display:flex} body{padding-bottom:72px} }
+    .sticky-cta.hidden{transform:translateY(110%); transition:transform .25s ease}
+  </style>
+
+  <!-- Utils (defer) -->
+  <script src="js/utils.js" defer></script>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header" role="banner">
+    <div class="nav-wrap">
+      <a class="brand" href="/" aria-label="Inicio">Tu Empresa</a>
+      <button id="nav-toggle" class="nav-toggle" aria-label="Abrir menú" aria-controls="mobile-drawer" aria-expanded="false">
+        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+      </button>
+      <nav class="nav-desktop" aria-label="Menú principal">
+        <a href="/#servicios">Servicios</a>
+        <a href="/#stock">Stock</a>
+        <a href="/#contacto" class="btn primary">Contacto</a>
+      </nav>
+    </div>
+
+    <!-- Drawer -->
+    <div id="mobile-drawer" class="drawer" role="dialog" aria-modal="true" aria-label="Menú">
+      <div class="drawer-inner">
+        <div class="drawer-top">
+          <span class="drawer-title">Menú</span>
+          <button class="drawer-close" aria-label="Cerrar menú">✕</button>
+        </div>
+        <nav class="drawer-nav" aria-label="Navegación móvil">
+          <a href="/#servicios" class="drawer-link">Servicios</a>
+          <a href="/#stock" class="drawer-link">Stock</a>
+          <a href="/#contacto" class="drawer-link btn primary" style="text-align:center;">Contacto</a>
+        </nav>
+        <div style="height:calc(12px + env(safe-area-inset-bottom,0px))"></div>
+      </div>
+      <button class="drawer-backdrop" tabindex="-1" aria-hidden="true"></button>
+    </div>
+  </header>
+
+  <main class="container" id="car-container">
+    <h1 id="car-title">Cargando…</h1>
+
+    <div class="gallery" id="car-gallery" role="region" aria-label="Galería de imágenes del coche"></div>
+    <div id="car-video" role="region" aria-label="Vídeo del coche"></div>
+    <section class="specs" id="car-specs" aria-label="Especificaciones técnicas"></section>
+
+    <form id="contact-form" aria-label="Formulario de contacto" novalidate>
+      <h2>Solicita información</h2>
+      <label for="nombre">Nombre</label>
+      <input type="text" id="nombre" name="nombre" placeholder="Nombre" required minlength="2" maxlength="100">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" placeholder="Email" required maxlength="254">
+      <label for="mensaje">Mensaje</label>
+      <textarea id="mensaje" name="mensaje" placeholder="Mensaje" rows="4" required minlength="10" maxlength="2000"></textarea>
+      <input type="hidden" name="coche_interes" id="coche_interes">
+      <button type="submit">Enviar</button>
+      <p id="form-status" aria-live="polite"></p>
+    </form>
+  </main>
+
+  <div class="sticky-cta hidden" id="sticky-cta" aria-label="Acción rápida">
+    <div style="display:flex;flex-direction:column;">
+      <b id="sticky-title">Coche</b>
+      <span class="price" id="sticky-price"></span>
+    </div>
+    <a href="#contact-form" class="cta-btn">Solicitar info</a>
+  </div>
+
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    const SUPABASE_URL  = "https://swzizabjkzllxwbrcsnp.supabase.co";
+    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3eml6YWJqa3psbHh3YnJjc25wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MTU5MTUsImV4cCI6MjA3MTM5MTkxNX0.VDQH9t34ij9BAzV-pd0kXFUru179d1b21VNeV7VlkjA";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    const $ = sel => document.querySelector(sel);
+    const params = new URLSearchParams(location.search);
+    const carId = params.get('id');
+
+    async function loadCar() {
+      if (!carId) { document.body.innerHTML = '<p style="padding:24px">Falta el parámetro <b>id</b>.</p>'; return; }
+
+      const { data, error } = await supabase
+        .from('cars')
+        .select(`id, marca, modelo, version, anio, km, combustible, caja,
+                 imagenes, precio_objetivo, descripcion, extras, video_url, estado_publicacion`)
+        .eq('id', carId)
+        .in('estado_publicacion', ["publicado", "disponible"])
+        .single();
+
+      if (error || !data) { document.body.innerHTML = '<p style="padding:24px">Coche no encontrado.</p>'; return; }
+
+      const title = `${data.marca} ${data.modelo}${data.version ? ' ' + data.version : ''} ${data.anio || ''}`.trim();
+      $('#car-title').textContent = title;
+      document.title = `${title} — Detalle del vehículo`;
+
+      const desc = `Coche ${title}, ${data.km?.toLocaleString('es-ES')} km, ${data.combustible ?? '-'}, ${data.caja ?? '-'}, precio ${data.precio_objetivo ? Number(data.precio_objetivo).toLocaleString('es-ES')+"€" : "Bajo pedido"}.`;
+      $('#meta-description').setAttribute("content", desc);
+      $('#og-title').setAttribute("content", title);
+      $('#og-description').setAttribute("content", data.descripcion || "Vehículo premium disponible.");
+      $('#twitter-title').setAttribute("content", title);
+      $('#twitter-description').setAttribute("content", data.descripcion || "Vehículo premium disponible.");
+
+      const canonicalHref = `${location.origin}/car.html?id=${encodeURIComponent(carId)}`;
+      document.getElementById('canonical')?.setAttribute('href', canonicalHref);
+      document.getElementById('og-url')?.setAttribute('content', canonicalHref);
+
+      if (data.imagenes?.[0]) {
+        $('#og-image').setAttribute("content", data.imagenes[0]);
+        $('#twitter-image').setAttribute("content", data.imagenes[0]);
+      }
+
+      const priceMeta = document.getElementById('meta-price-amount');
+      if (priceMeta) priceMeta.setAttribute('content', data.precio_objetivo ? String(Number(data.precio_objetivo)) : "");
+
+      const jsonld = {
+        "@context":"https://schema.org",
+        "@type":"Product",
+        "name": title,
+        "description": data.descripcion || "Vehículo premium disponible.",
+        "image": data.imagenes,
+        "brand": data.marca,
+        "model": data.modelo,
+        "sku": data.id,
+        "offers": {"@type":"Offer","price": data.precio_objetivo || "0","priceCurrency":"EUR","availability":"https://schema.org/InStock","url": canonicalHref}
+      };
+      document.getElementById("car-jsonld").textContent = JSON.stringify(jsonld);
+
+      /* Galería */
+      const images = Array.isArray(data.imagenes) ? data.imagenes : [];
+      const gallery = $('#car-gallery');
+
+      if (!images.length) {
+        gallery.innerHTML = '<p style="padding:12px;color:#ddd">Sin imágenes</p>';
+      } else {
+        gallery.innerHTML = `
+          <div class="slider" aria-label="Carrusel de imágenes">
+            <div class="slider-track">
+              ${images.map((src,i) => `<img class="slide" src="${src}" alt="${sanitizeHTML(title)} — imagen ${i+1}" loading="lazy" decoding="async" width="1200" height="800">`).join('')}
+            </div>
+            <button class="nav-btn nav-prev" aria-label="Imagen anterior">
+              <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="nav-btn nav-next" aria-label="Imagen siguiente">
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <div class="dots" aria-label="Indicadores">
+              ${images.map((_,i)=>`<span class="dot" role="button" aria-label="Ver imagen ${i+1}" data-i="${i}"></span>`).join('')}
+            </div>
+            <div class="counter" id="counter">1 / ${images.length}</div>
+          </div>`;
+
+        const track   = gallery.querySelector('.slider-track');
+        const prevBtn = gallery.querySelector('.nav-prev');
+        const nextBtn = gallery.querySelector('.nav-next');
+        const dots    = [...gallery.querySelectorAll('.dot')];
+        const counter = document.getElementById('counter');
+
+        let idx = 0; const N = images.length;
+        const set = (i) => {
+          idx = (i + N) % N;
+          track.style.transform = `translateX(-${idx * 100}%)`;
+          dots.forEach((d,k)=>d.classList.toggle('active', k === idx));
+          if (counter) counter.textContent = `${idx+1} / ${N}`;
+        };
+
+        let timer = null;
+        const start = () => { if (N <= 1) return; clearInterval(timer); timer = setInterval(()=>set(idx+1), 4000); };
+        const stop  = () => { if (timer) clearInterval(timer); timer = null; };
+
+        prevBtn.onclick = () => { stop(); set(idx - 1); start(); };
+        nextBtn.onclick = () => { stop(); set(idx + 1); start(); };
+        if (N <= 1) { prevBtn.disabled = true; nextBtn.disabled = true; }
+        dots.forEach(d => d.onclick = () => { stop(); set(+d.dataset.i); start(); });
+
+        gallery.addEventListener('mouseenter', stop);
+        gallery.addEventListener('mouseleave', start);
+        document.addEventListener('visibilitychange', () => { document.hidden ? stop() : start(); });
+
+        // Gestos
+        let startX=0, dx=0, touching=false;
+        const onDown = (e)=>{touching=true; startX=(e.touches?.[0].clientX ?? e.clientX); stop();};
+        const onMove = (e)=>{if(!touching) return; const x=(e.touches?.[0].clientX ?? e.clientX); dx=x-startX;};
+        const onUp   = ()=>{if(!touching) return; if(Math.abs(dx)>50) (dx<0?set(idx+1):set(idx-1)); touching=false; dx=0; start();};
+        gallery.addEventListener('touchstart', onDown, {passive:true});
+        gallery.addEventListener('touchmove',  onMove, {passive:true});
+        gallery.addEventListener('touchend',   onUp);
+        gallery.addEventListener('mousedown',  onDown);
+        gallery.addEventListener('mousemove',  onMove);
+        gallery.addEventListener('mouseup',    onUp);
+
+        set(0); start();
+      }
+
+      /* Vídeo */
+      const videoBox = $('#car-video');
+      if (data.video_url && data.video_url.trim()) {
+        let url = data.video_url.trim();
+        if (url.includes('watch?v=')) url = url.replace('watch?v=', 'embed/');
+        if (url.endsWith('.mp4')) {
+          videoBox.innerHTML = `<video src="${url}" controls style="width:100%;border-radius:16px;max-height:480px;box-shadow:var(--shadow)"></video>`;
+        } else {
+          videoBox.innerHTML = `<iframe src="${url}" allowfullscreen loading="lazy"></iframe>`;
+        }
+        videoBox.style.display = '';
+      } else {
+        videoBox.innerHTML = '';
+        videoBox.style.display = 'none';
+      }
+
+      /* Specs + Descripción */
+      const specsEl = $('#car-specs');
+      safeInnerHTML(specsEl, `
+        <p><b>Kilómetros:</b> ${data.km?.toLocaleString('es-ES') ?? '-'}</p>
+        <p><b>Combustible:</b> ${sanitizeHTML(data.combustible) ?? '-'}</p>
+        <p><b>Caja:</b> ${sanitizeHTML(data.caja) ?? '-'}</p>
+        <p><b>Precio:</b> ${data.precio_objetivo ? Number(data.precio_objetivo).toLocaleString('es-ES')+' €' : 'Bajo pedido'}</p>
+        ${data.extras ? `<p><b>Extras:</b> ${sanitizeHTML(data.extras)}</p>` : ''}
+        <h3>Descripción</h3>
+        <div class="desc"></div>
+      `);
+      const descDiv = specsEl.querySelector('.desc');
+      safeTextContent(descDiv, (data.descripcion && data.descripcion.trim()) ? data.descripcion.trim() : 'Sin descripción');
+
+      /* Sticky CTA */
+      const bar = document.getElementById('sticky-cta');
+      const priceEl = document.getElementById('sticky-price');
+      const titleEl = document.getElementById('sticky-title');
+      titleEl.textContent = title;
+      priceEl.textContent = data.precio_objetivo ? `${Number(data.precio_objetivo).toLocaleString('es-ES')} €` : 'Bajo pedido';
+
+      const form = document.getElementById('contact-form');
+      const io = new IntersectionObserver((entries)=>{
+        const visible = entries[0].isIntersecting;
+        bar.classList.toggle('hidden', visible);
+      }, { threshold: 0.35 });
+      io.observe(form);
+
+      $('#coche_interes').value = title;
+    }
+    loadCar();
+
+    // Lead: enviar al backend
+    const formEl = document.getElementById('contact-form');
+    formEl?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(formEl);
+      const payload = {
+        nombre: (fd.get('nombre')||'').toString().trim(),
+        email:  (fd.get('email') ||'').toString().trim(),
+        mensaje: (fd.get('mensaje')||'').toString().trim(),
+        coche_interes: (fd.get('coche_interes')||'').toString().trim(),
+        page_url: location.href,
+        user_agent: navigator.userAgent
+      };
+
+      const statusEl = document.getElementById('form-status');
+
+      if (!Validator.required(payload.nombre, 2)) { statusEl.textContent = 'Nombre inválido.'; return; }
+      if (!Validator.email(payload.email)) { statusEl.textContent = 'Email inválido.'; return; }
+      if (!Validator.required(payload.mensaje, 10)) { statusEl.textContent = 'Mensaje demasiado corto.'; return; }
+
+      statusEl.textContent = 'Enviando…';
+      try {
+        const res = await fetch('/api/notify-lead', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw 0;
+        statusEl.textContent = '¡Gracias! Te contactaremos en breve.';
+        formEl.reset();
+        notify?.success?.('Lead enviado correctamente');
+      } catch {
+        statusEl.textContent = 'Error enviando lead.';
+        notify?.error?.('No se pudo enviar el formulario');
+      }
+    });
+  </script>
+
+  <!-- Menú (solo X cierra) -->
+  <script>
+    (() => {
+      const toggleBtn = document.getElementById('nav-toggle');
+      const drawer    = document.getElementById('mobile-drawer');
+      const closeBtn  = drawer?.querySelector('.drawer-close');
+      if (!toggleBtn || !drawer) return;
+
+      const focusableSel = ['a[href]','button:not([disabled])','input','select','textarea','[tabindex]:not([tabindex="-1"])'].join(',');
+      let lastFocused = null;
+
+      const open = () => {
+        lastFocused = document.activeElement;
+        drawer.classList.add('open');
+        document.body.classList.add('nav-open');
+        toggleBtn.setAttribute('aria-expanded','true');
+        drawer.querySelector(focusableSel)?.focus({preventScroll:true});
+      };
+      const close = () => {
+        drawer.classList.remove('open');
+        document.body.classList.remove('nav-open');
+        toggleBtn.setAttribute('aria-expanded','false');
+        lastFocused?.focus?.({preventScroll:true});
+      };
+      const isOpen = () => drawer.classList.contains('open');
+
+      toggleBtn.addEventListener('click', () => isOpen() ? close() : open(), { passive:true });
+      closeBtn?.addEventListener('click', close, { passive:true });
+
+      window.addEventListener('keydown', (e) => {
+        if (!isOpen()) return;
+        if (e.key === 'Escape') { e.preventDefault(); close(); }
+        if (e.key === 'Tab') {
+          const f = [...drawer.querySelectorAll(focusableSel)];
+          if (!f.length) return;
+          const first = f[0], last = f[f.length-1];
+          if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+        }
+      });
+
+      const resetDrawerState = () => { drawer.classList.remove('open'); document.body.classList.remove('nav-open'); toggleBtn.setAttribute('aria-expanded','false'); };
+      window.addEventListener('pageshow', resetDrawerState);
+      window.addEventListener('pagehide', resetDrawerState);
+      window.addEventListener('beforeunload', resetDrawerState);
+      document.addEventListener('visibilitychange', () => { if (document.hidden) resetDrawerState(); });
+    })();
+  </script>
+</body>
+</html>

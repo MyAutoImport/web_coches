@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://web-coches-eta.vercel.app/sitemap.xml

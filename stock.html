@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <title>Stock de vehículos — Tu Empresa</title>
+  <meta name="description" content="Explora nuestro catálogo de coches disponibles: filtra por marca, combustible, año, precio y ordena por los criterios que prefieras.">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://web-coches-eta.vercel.app/stock.html">
+
+  <!-- OG -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Tu Empresa">
+  <meta property="og:title" content="Stock de vehículos — Tu Empresa">
+  <meta property="og:description" content="Filtra y descubre nuestros coches disponibles.">
+  <meta property="og:image" content="https://web-coches-eta.vercel.app/og-image.jpg">
+  <meta property="og:url" content="https://web-coches-eta.vercel.app/stock.html">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Favicons / PWA -->
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#0f172a">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --primary:#6366F1; --primary-dark:#4F46E5;
+      --bg:#111827; --text:#F9FAFB; --muted:#9CA3AF;
+      --card:#1F2937; --border:#374151; --shadow:0 8px 24px rgba(0,0,0,.35);
+      --nav-h:64px; --nav-bg:#0f172a; --nav-border:rgba(255,255,255,.06);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+    a{color:inherit;text-decoration:none}
+
+    /* Header + Drawer */
+    .site-header{position:sticky;top:0;z-index:50;background:var(--nav-bg);border-bottom:1px solid var(--nav-border);backdrop-filter:blur(8px) saturate(120%)}
+    .nav-wrap{max-width:1200px;margin:0 auto;padding:12px 16px;height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .brand{color:#fff;font-weight:800;letter-spacing:.2px;font-size:clamp(1.05rem,2vw,1.2rem)}
+    .nav-desktop{display:none;gap:16px;align-items:center}
+    .nav-desktop a{color:rgba(249,250,251,.92);font-weight:600;padding:8px 10px;border-radius:10px;transition:background .2s,color .2s}
+    .nav-desktop a:hover{color:#fff;background:rgba(255,255,255,.06)}
+    .nav-toggle{width:44px;height:44px;border-radius:12px;border:1px solid var(--nav-border);background:transparent;cursor:pointer;display:grid;place-items:center;gap:4px;transition:background .2s,border .2s}
+    .nav-toggle:hover{background:rgba(255,255,255,.04)}
+    .nav-toggle .bar{width:20px;height:2px;background:#e5e7eb;display:block;border-radius:2px;transition:transform .25s ease, opacity .25s ease}
+    .nav-toggle[aria-expanded="true"] .bar:nth-child(1){transform:translateY(6px) rotate(45deg)}
+    .nav-toggle[aria-expanded="true"] .bar:nth-child(2){opacity:0}
+    .nav-toggle[aria-expanded="true"] .bar:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+    @media (min-width:900px){.nav-toggle{display:none}.nav-desktop{display:flex}}
+
+    .drawer{position:fixed;inset:0;display:grid;grid-template-columns:1fr;pointer-events:none;z-index:60}
+    .drawer-backdrop{display:none}
+    .drawer-inner{
+      align-self:start;justify-self:end;
+      width:clamp(320px,78vw,560px);
+      height:100vh;height:100svh;height:100dvh;
+      background:#0b1220;border-left:1px solid var(--nav-border);
+      box-shadow:-24px 0 48px rgba(0,0,0,.6);
+      transform:translateX(100%);transition:transform .28s ease;
+      display:flex;flex-direction:column;overflow:auto;-webkit-overflow-scrolling:touch;
+      padding:18px;padding-top:calc(16px + env(safe-area-inset-top,0px));
+    }
+    @media (min-width:600px) and (max-width:899px){.drawer-inner{width:min(88vw,560px)}}
+    .drawer.open{pointer-events:auto}
+    .drawer.open .drawer-inner{transform:translateX(0)}
+    body.nav-open{overflow:hidden;touch-action:none;overscroll-behavior:contain}
+    .drawer-close{width:40px;height:40px;border-radius:12px;border:1px solid var(--nav-border);background:#111827;color:#e5e7eb;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+    /* Layout */
+    main{max-width:1200px;margin:0 auto;padding:28px 18px}
+    h1{font-size:clamp(1.6rem,2.4vw,2.25rem);margin:8px 0 18px;font-weight:800;letter-spacing:.2px;color:#fff}
+
+    /* Filtros */
+    .filters{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:16px;margin-bottom:16px}
+    .filters form{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+    .filters label{font-weight:600;color:#E5E7EB;font-size:.95rem}
+    .filters input,.filters select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#0B1220;color:#fff}
+    .filters .col-3{grid-column:span 3} .col-2{grid-column:span 2} .col-4{grid-column:span 4}
+    .filters .col-6{grid-column:span 6} .col-12{grid-column:span 12}
+    .filters .actions{display:flex;gap:10px;align-items:end}
+    @media (max-width:900px){
+      .filters form{grid-template-columns:1fr 1fr}
+      .filters .col-3,.col-2,.col-4,.col-6,.col-12{grid-column:span 2}
+      .filters .actions{grid-column:span 2}
+    }
+
+    /* Cards */
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:14px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:0 4px 16px rgba(0,0,0,.35);transition:.2s}
+    .card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.45)}
+    .card img{width:100%;border-radius:12px;margin-bottom:10px;display:block;aspect-ratio:16/9;object-fit:cover;background:#0b0b0b}
+    .card .title{color:#fff;font-weight:700}
+    .card .muted{color:var(--muted)}
+
+    /* Botones */
+    .btn{display:inline-block;padding:10px 18px;border-radius:999px;font-weight:700}
+    .btn.primary{background:var(--primary);color:#fff;box-shadow:0 6px 18px rgba(99,102,241,.25)}
+    .btn.primary:hover{background:var(--primary-dark)}
+
+    /* Paginación */
+    .pager{display:flex;gap:8px;justify-content:center;align-items:center;margin:18px 0 6px}
+    .pager button{padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:#0B1220;color:#fff;cursor:pointer}
+    .pager button[disabled]{opacity:.45;cursor:not-allowed}
+
+    /* Utilidades */
+    .srch{display:flex;gap:8px}
+  </style>
+
+  <script src="/js/utils.js" defer></script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header" role="banner">
+    <div class="nav-wrap">
+      <a class="brand" href="/" aria-label="Inicio">Tu Empresa</a>
+      <button id="nav-toggle" class="nav-toggle" aria-label="Abrir menú" aria-controls="mobile-drawer" aria-expanded="false">
+        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+      </button>
+      <nav class="nav-desktop" aria-label="Menú principal">
+        <a href="/#servicios">Servicios</a>
+        <a href="/stock.html">Stock</a>
+        <a href="/#contacto" class="btn primary">Contacto</a>
+      </nav>
+    </div>
+
+    <!-- Drawer -->
+    <div id="mobile-drawer" class="drawer" role="dialog" aria-modal="true" aria-label="Menú">
+      <div class="drawer-inner">
+        <div class="drawer-top" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span class="drawer-title" style="color:#fff;font-weight:800;letter-spacing:.2px">Menú</span>
+          <button class="drawer-close" aria-label="Cerrar menú">✕</button>
+        </div>
+        <nav class="drawer-nav" aria-label="Navegación móvil" style="display:flex;flex-direction:column;gap:12px">
+          <a href="/#servicios" class="drawer-link">Servicios</a>
+          <a href="/stock.html" class="drawer-link">Stock</a>
+          <a href="/#contacto" class="drawer-link btn primary" style="text-align:center;">Contacto</a>
+        </nav>
+        <div style="height:calc(12px + env(safe-area-inset-bottom,0px))"></div>
+      </div>
+      <button class="drawer-backdrop" tabindex="-1" aria-hidden="true"></button>
+    </div>
+  </header>
+
+  <main>
+    <h1>Stock de vehículos</h1>
+
+    <!-- Filtros -->
+    <section class="filters" aria-label="Filtros de búsqueda">
+      <form id="filters-form">
+        <div class="col-4">
+          <label for="q">Buscar</label>
+          <input id="q" name="q" type="search" placeholder="marca, modelo, versión…">
+        </div>
+        <div class="col-2">
+          <label for="combustible">Combustible</label>
+          <select id="combustible" name="combustible">
+            <option value="">Todos</option>
+            <option>Gasolina</option>
+            <option>Diésel</option>
+            <option>Híbrido</option>
+            <option>Eléctrico</option>
+          </select>
+        </div>
+        <div class="col-2">
+          <label for="caja">Caja</label>
+          <select id="caja" name="caja">
+            <option value="">Todas</option>
+            <option>Manual</option>
+            <option>Automático</option>
+          </select>
+        </div>
+        <div class="col-2">
+          <label for="anio_min">Año mín.</label>
+          <input id="anio_min" name="anio_min" type="number" inputmode="numeric" min="1980" placeholder="2015">
+        </div>
+        <div class="col-2">
+          <label for="anio_max">Año máx.</label>
+          <input id="anio_max" name="anio_max" type="number" inputmode="numeric" min="1980" placeholder="2025">
+        </div>
+        <div class="col-2">
+          <label for="precio_max">Precio máx. (€)</label>
+          <input id="precio_max" name="precio_max" type="number" inputmode="numeric" step="500" placeholder="50000">
+        </div>
+        <div class="col-3">
+          <label for="orden">Ordenar por</label>
+          <select id="orden" name="orden">
+            <option value="created_at.desc">Novedades</option>
+            <option value="precio_objetivo.asc">Precio ↑</option>
+            <option value="precio_objetivo.desc">Precio ↓</option>
+            <option value="anio.desc">Año ↓</option>
+            <option value="km.asc">KM ↑</option>
+            <option value="km.desc">KM ↓</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn primary">Aplicar</button>
+          <button type="button" id="reset" class="btn" style="background:#0B1220;border:1px solid var(--border);color:#fff">Reset</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Resultados -->
+    <section aria-live="polite">
+      <div class="grid" id="results"></div>
+      <div class="pager">
+        <button id="prev">Anterior</button>
+        <span id="pageinfo" style="color:var(--muted)"></span>
+        <button id="next">Siguiente</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+    const SUPABASE_URL  = "https://swzizabjkzllxwbrcsnp.supabase.co";
+    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3eml6YWJqa3psbHh3YnJjc25wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MTU5MTUsImV4cCI6MjA3MTM5MTkxNX0.VDQH9t34ij9BAzV-pd0kXFUru179d1b21VNeV7VlkjA";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    const $ = s => document.querySelector(s);
+    const results = $("#results");
+    const form = $("#filters-form");
+    const prevBtn = $("#prev");
+    const nextBtn = $("#next");
+    const pageInfo = $("#pageinfo");
+
+    const PAGE = 12; // items por página
+    const FALLBACK = "https://picsum.photos/seed/car/1000/700";
+    let currentPage = 1;
+    let total = 0;
+
+    function readParams(){
+      const p = new URLSearchParams(location.search);
+      const obj = {
+        q: p.get("q") || "",
+        combustible: p.get("combustible") || "",
+        caja: p.get("caja") || "",
+        anio_min: p.get("anio_min") || "",
+        anio_max: p.get("anio_max") || "",
+        precio_max: p.get("precio_max") || "",
+        orden: p.get("orden") || "created_at.desc",
+        page: Number(p.get("page") || "1")
+      };
+      Object.entries(obj).forEach(([k,v])=>{
+        const el = form.querySelector(`[name="${k}"]`);
+        if(el) el.value = v;
+      });
+      return obj;
+    }
+
+    function writeParams(obj){
+      const p = new URLSearchParams();
+      Object.entries(obj).forEach(([k,v])=>{ if(v) p.set(k,String(v)) });
+      history.replaceState(null,"",`?${p.toString()}`);
+    }
+
+    function cardHTML(c){
+      const titulo = `${c.marca ?? ""} ${c.modelo ?? ""} ${c.anio ?? ""}`.trim();
+      // cover -> si viene de la view; si no, usa imagenes[0]; si falla, fallback
+      const imgSrc = c.cover || (Array.isArray(c.imagenes) && c.imagenes[0]) || FALLBACK;
+      const km = (c.km ?? 0).toLocaleString("es-ES");
+      const resumen = [km && `${km} km`, c.combustible, c.caja].filter(Boolean).join(" · ");
+      const precio = c.precio_objetivo ? `${Number(c.precio_objetivo).toLocaleString("es-ES")} €` : "Bajo pedido";
+      return `
+        <article class="card">
+          <a href="/car.html?id=${encodeURIComponent(c.id)}" aria-label="Ver ${sanitizeHTML(titulo)}">
+            <img src="${imgSrc}" referrerpolicy="no-referrer"
+                 onerror="this.onerror=null;this.src='${FALLBACK}'"
+                 alt="${sanitizeHTML(titulo)}" loading="lazy" decoding="async" width="400" height="260">
+          </a>
+          <div>
+            <div class="title">${sanitizeHTML(titulo)}</div>
+            <div class="muted">${sanitizeHTML(resumen)}</div>
+            <div class="muted" style="margin-top:4px">${sanitizeHTML(precio)}</div>
+          </div>
+        </article>`;
+    }
+
+    async function fetchFromView(params){
+      // contra la VIEW con cover
+      let q = supabase.from("cars_with_cover")
+        .select("id, marca, modelo, anio, km, combustible, caja, cover, precio_objetivo, created_at, estado_publicacion", { count: "exact" })
+        .in("estado_publicacion", ["publicado","disponible"]);
+
+      if(params.q){
+        const like = `%${params.q}%`;
+        q = q.or(`marca.ilike.${like},modelo.ilike.${like},version.ilike.${like}`);
+      }
+      if(params.combustible) q = q.eq("combustible", params.combustible);
+      if(params.caja) q = q.eq("caja", params.caja);
+      if(params.anio_min) q = q.gte("anio", Number(params.anio_min));
+      if(params.anio_max) q = q.lte("anio", Number(params.anio_max));
+      if(params.precio_max) q = q.lte("precio_objetivo", Number(params.precio_max));
+
+      const [field, dir] = (params.orden || "created_at.desc").split(".");
+      q = q.order(field, { ascending: dir !== "desc", nullsFirst:false });
+
+      const from = (currentPage-1)*PAGE;
+      const to = from + PAGE - 1;
+      return q.range(from, to);
+    }
+
+    async function fetchFromTable(params){
+      // fallback a la TABLA original
+      let q = supabase.from("cars")
+        .select("id, marca, modelo, anio, km, combustible, caja, imagenes, precio_objetivo, created_at, estado_publicacion", { count: "exact" })
+        .in("estado_publicacion", ["publicado","disponible"]);
+
+      if(params.q){
+        const like = `%${params.q}%`;
+        q = q.or(`marca.ilike.${like},modelo.ilike.${like},version.ilike.${like}`);
+      }
+      if(params.combustible) q = q.eq("combustible", params.combustible);
+      if(params.caja) q = q.eq("caja", params.caja);
+      if(params.anio_min) q = q.gte("anio", Number(params.anio_min));
+      if(params.anio_max) q = q.lte("anio", Number(params.anio_max));
+      if(params.precio_max) q = q.lte("precio_objetivo", Number(params.precio_max));
+
+      const [field, dir] = (params.orden || "created_at.desc").split(".");
+      q = q.order(field, { ascending: dir !== "desc", nullsFirst:false });
+
+      const from = (currentPage-1)*PAGE;
+      const to = from + PAGE - 1;
+      return q.range(from, to);
+    }
+
+    async function fetchData(){
+      const params = readParams();
+      currentPage = Math.max(1, Number(params.page) || 1);
+
+      results.innerHTML = `<p style="color:var(--muted)">Cargando resultados…</p>`;
+
+      // 1º intentamos contra la VIEW; si no existe, caemos a la tabla
+      let resp = await fetchFromView(params);
+      if (resp.error && (resp.error.code === '42P01' || /relation .* does not exist/i.test(resp.error.message))) {
+        resp = await fetchFromTable(params);
+      }
+
+      const { data, error, count } = resp;
+      if(error){ console.error(error); results.innerHTML = `<p style="color:#FCA5A5">Error cargando el stock.</p>`; return; }
+
+      total = count ?? 0;
+      results.innerHTML = data?.length ? data.map(cardHTML).join("") : `<p style="color:var(--muted)">No hay resultados con estos filtros.</p>`;
+
+      const totalPages = Math.max(1, Math.ceil(total / PAGE));
+      pageInfo.textContent = `${currentPage} / ${totalPages}`;
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= totalPages;
+    }
+
+    form.addEventListener("submit", (e)=>{
+      e.preventDefault();
+      const fd = new FormData(form);
+      const params = Object.fromEntries(fd.entries());
+      params.page = "1";
+      writeParams(params);
+      fetchData();
+    });
+
+    document.getElementById("reset").addEventListener("click", ()=>{
+      form.reset();
+      writeParams({ orden:"created_at.desc", page:"1" });
+      fetchData();
+    });
+
+    document.getElementById("prev").addEventListener("click", ()=>{
+      const p = readParams(); p.page = String(Math.max(1, (Number(p.page)||1)-1));
+      writeParams(p); fetchData();
+    });
+    document.getElementById("next").addEventListener("click", ()=>{
+      const p = readParams(); p.page = String((Number(p.page)||1)+1);
+      writeParams(p); fetchData();
+    });
+
+    // Inicial
+    fetchData();
+
+    /* ====== Drawer JS ====== */
+    (() => {
+      const toggleBtn = document.getElementById('nav-toggle');
+      const drawer    = document.getElementById('mobile-drawer');
+      const closeBtn  = drawer?.querySelector('.drawer-close');
+      if (!toggleBtn || !drawer) return;
+
+      const focusableSel = ['a[href]','button:not([disabled])','input','select','textarea','[tabindex]:not([tabindex="-1"])'].join(',');
+      let lastFocused = null;
+
+      const open = () => {
+        lastFocused = document.activeElement;
+        drawer.classList.add('open');
+        document.body.classList.add('nav-open');
+        toggleBtn.setAttribute('aria-expanded','true');
+        drawer.querySelector(focusableSel)?.focus({preventScroll:true});
+      };
+      const close = () => {
+        drawer.classList.remove('open');
+        document.body.classList.remove('nav-open');
+        toggleBtn.setAttribute('aria-expanded','false');
+        lastFocused?.focus?.({preventScroll:true});
+      };
+      const isOpen = () => drawer.classList.contains('open');
+
+      toggleBtn.addEventListener('click', () => isOpen() ? close() : open(), { passive:true });
+      closeBtn?.addEventListener('click', close, { passive:true });
+
+      window.addEventListener('keydown', (e) => {
+        if (!isOpen()) return;
+        if (e.key === 'Escape') { e.preventDefault(); close(); }
+        if (e.key === 'Tab') {
+          const f = [...drawer.querySelectorAll(focusableSel)];
+          if (!f.length) return;
+          const first = f[0], last = f[f.length-1];
+          if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+        }
+      });
+
+      const resetDrawerState = () => { drawer.classList.remove('open'); document.body.classList.remove('nav-open'); toggleBtn.setAttribute('aria-expanded','false'); };
+      window.addEventListener('pageshow', resetDrawerState);
+      window.addEventListener('pagehide', resetDrawerState);
+      window.addEventListener('beforeunload', resetDrawerState);
+      document.addEventListener('visibilitychange', () => { if (document.hidden) resetDrawerState(); });
+    })();
+  </script>
+</body>
+</html>
