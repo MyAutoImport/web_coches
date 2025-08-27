@@ -60,7 +60,7 @@
     .drawer{position:fixed;inset:0;display:grid;grid-template-columns:1fr;pointer-events:none;z-index:60}
     .drawer-backdrop{display:none}
     .drawer-inner{
-      align-self:start;justify-self:end;
+      align-self:start;justify-self=end;
       width:clamp(320px,78vw,560px);
       height:100vh;height:100svh;height:100dvh;
       background:#0b1220;border-left:1px solid var(--nav-border);
@@ -264,7 +264,7 @@
 
     function cardHTML(c){
       const titulo = `${c.marca ?? ""} ${c.modelo ?? ""} ${c.anio ?? ""}`.trim();
-      // cover -> si viene de la view; si no, usa imagenes[0]; si falla, fallback
+      // Si hay 'cover' lo usa, si no la primera imagen, y si falla -> fallback
       const imgSrc = c.cover || (Array.isArray(c.imagenes) && c.imagenes[0]) || FALLBACK;
       const km = (c.km ?? 0).toLocaleString("es-ES");
       const resumen = [km && `${km} km`, c.combustible, c.caja].filter(Boolean).join(" · ");
@@ -284,32 +284,8 @@
         </article>`;
     }
 
-    async function fetchFromView(params){
-      // contra la VIEW con cover
-      let q = supabase.from("cars_with_cover")
-        .select("id, marca, modelo, anio, km, combustible, caja, cover, precio_objetivo, created_at, estado_publicacion", { count: "exact" })
-        .in("estado_publicacion", ["publicado","disponible"]);
-
-      if(params.q){
-        const like = `%${params.q}%`;
-        q = q.or(`marca.ilike.${like},modelo.ilike.${like},version.ilike.${like}`);
-      }
-      if(params.combustible) q = q.eq("combustible", params.combustible);
-      if(params.caja) q = q.eq("caja", params.caja);
-      if(params.anio_min) q = q.gte("anio", Number(params.anio_min));
-      if(params.anio_max) q = q.lte("anio", Number(params.anio_max));
-      if(params.precio_max) q = q.lte("precio_objetivo", Number(params.precio_max));
-
-      const [field, dir] = (params.orden || "created_at.desc").split(".");
-      q = q.order(field, { ascending: dir !== "desc", nullsFirst:false });
-
-      const from = (currentPage-1)*PAGE;
-      const to = from + PAGE - 1;
-      return q.range(from, to);
-    }
-
+    // Consulta SOLO a la tabla 'cars'
     async function fetchFromTable(params){
-      // fallback a la TABLA original
       let q = supabase.from("cars")
         .select("id, marca, modelo, anio, km, combustible, caja, imagenes, precio_objetivo, created_at, estado_publicacion", { count: "exact" })
         .in("estado_publicacion", ["publicado","disponible"]);
@@ -338,17 +314,20 @@
 
       results.innerHTML = `<p style="color:var(--muted)">Cargando resultados…</p>`;
 
-      // 1º intentamos contra la VIEW; si no existe, caemos a la tabla
-      let resp = await fetchFromView(params);
-      if (resp.error && (resp.error.code === '42P01' || /relation .* does not exist/i.test(resp.error.message))) {
-        resp = await fetchFromTable(params);
+      // ✅ Solo tabla
+      const resp = await fetchFromTable(params);
+      const { data, error, count } = resp;
+
+      if(error){
+        console.error(error);
+        results.innerHTML = `<p style="color:#FCA5A5">Error cargando el stock.</p>`;
+        return;
       }
 
-      const { data, error, count } = resp;
-      if(error){ console.error(error); results.innerHTML = `<p style="color:#FCA5A5">Error cargando el stock.</p>`; return; }
-
       total = count ?? 0;
-      results.innerHTML = data?.length ? data.map(cardHTML).join("") : `<p style="color:var(--muted)">No hay resultados con estos filtros.</p>`;
+      results.innerHTML = data?.length
+        ? data.map(cardHTML).join("")
+        : `<p style="color:var(--muted)">No hay resultados con estos filtros.</p>`;
 
       const totalPages = Math.max(1, Math.ceil(total / PAGE));
       pageInfo.textContent = `${currentPage} / ${totalPages}`;
