@@ -207,9 +207,9 @@
   <section id="stock" aria-labelledby="stock-title">
     <h2 id="stock-title">Coches disponibles</h2>
     <div class="grid" id="stock-grid" role="list"></div>
-		<div style="text-align:center; margin-top:12px">
-			<a class="btn primary" href="/stock.html">Ver todo el stock</a>
-		</div>
+    <div style="text-align:center; margin-top:12px">
+      <a class="btn primary" href="/stock.html">Ver todo el stock</a>
+    </div>
   </section>
 
   <!-- CONTACTO -->
@@ -278,25 +278,13 @@
     return res.json();
   }
 
+  // 🔧 Simplificado: solo tabla 'cars' (sin view)
   async function fetchCars(){
-    // 1) Intento la VIEW con cover (+ filtro tolerante)
-    const selView = 'id,marca,modelo,version,anio,km,combustible,caja,cover,precio_objetivo,created_at,estado_publicacion';
-    const urlView = `${BASE}/cars_with_cover`
-      + `?select=${encodeURIComponent(selView)}`
+    const sel = 'id,marca,modelo,version,anio,km,combustible,caja,imagenes,precio_objetivo,created_at,estado_publicacion';
+    const url = `${BASE}/cars`
+      + `?select=${encodeURIComponent(sel)}`
       + `&order=created_at.desc&limit=12`
       + `&or=${encodeURIComponent('(estado_publicacion.eq.publicado,estado_publicacion.eq.disponible,estado_publicacion.is.null)')}`;
-
-    try {
-      const data = await fetchJSON(urlView);
-      if (Array.isArray(data) && data.length) return data;
-      console.warn("[HOME] 'cars_with_cover' vacío, paso a 'cars'.");
-    } catch(e){
-      console.warn("[HOME] view falló, paso a 'cars':", e.message);
-    }
-
-    // 2) Fallback a la TABLA (sin filtrar estado para no quedarnos a 0)
-    const sel = 'id,marca,modelo,version,anio,km,combustible,caja,imagenes,precio_objetivo,created_at,estado_publicacion';
-    const url = `${BASE}/cars?select=${encodeURIComponent(sel)}&order=created_at.desc&limit=12`;
     return fetchJSON(url);
   }
 
@@ -337,7 +325,6 @@
   })();
 })();
 </script>
-
 
   <!-- Menú (solo X cierra) -->
   <script>
