@@ -4,15 +4,15 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-  <title>Stock de vehículos — Tu Empresa</title>
+  <title>Stock de vehículos — My Auto Import</title>
   <meta name="description" content="Explora nuestro catálogo de coches disponibles: filtra por marca, combustible, año, precio y ordena por los criterios que prefieras.">
   <meta name="robots" content="index,follow">
   <link rel="canonical" href="https://myautoimport.es/stock.html">
 
   <!-- OG -->
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Tu Empresa">
-  <meta property="og:title" content="Stock de vehículos — Tu Empresa">
+  <meta property="og:site_name" content="My Auto Import">
+  <meta property="og:title" content="Stock de vehículos — My Auto Import">
   <meta property="og:description" content="Filtra y descubre nuestros coches disponibles.">
   <meta property="og:image" content="https://myautoimport.es/og-image.jpg">
   <meta property="og:url" content="https://myautoimport.es/stock.html">
@@ -29,6 +29,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <script src="/api/public-config.js"></script>
 
   <style>
     :root{
@@ -121,12 +123,18 @@
   </style>
 
   <script src="/js/utils.js" defer></script>
+  
+  <script>
+    const { SITE_ORIGIN } = window.__APP_CONFIG__;
+    const linkCanon = document.querySelector('link[rel="canonical"]');
+    if (linkCanon) linkCanon.href = SITE_ORIGIN.replace(/\/$/,'') + window.location.pathname + window.location.search;
+  </script>
 </head>
 <body>
   <!-- Header -->
   <header class="site-header" role="banner">
     <div class="nav-wrap">
-      <a class="brand" href="/" aria-label="Inicio">Tu Empresa</a>
+      <a class="brand" href="/" aria-label="Inicio">My Auto Import</a>
       <button id="nav-toggle" class="nav-toggle" aria-label="Abrir menú" aria-controls="mobile-drawer" aria-expanded="false">
         <span class="bar"></span><span class="bar"></span><span class="bar"></span>
       </button>
@@ -226,9 +234,11 @@
 
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-    const SUPABASE_URL  = "https://qsinlewdrvohrpkaxjxg.supabase.co";
-    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzaW5sZXdkcnZvaHJwa2F4anhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyNDgzNDMsImV4cCI6MjA3MTgyNDM0M30.Zi-7odAn1LLZqw6YxyINRO4QLcjqsNhwc1TgOLQ3jQw";
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
+	
+	//
+    const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__;
+	const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+	//
 
     const $ = s => document.querySelector(s);
     const results = $("#results");

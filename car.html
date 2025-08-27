@@ -10,7 +10,7 @@
 
   <!-- Social -->
   <meta property="og:type" content="product">
-  <meta property="og:site_name" content="Tu Empresa">
+  <meta property="og:site_name" content="My Auto Import">
   <meta property="og:title" id="og-title" content="Coche premium — Detalle">
   <meta property="og:description" id="og-description" content="Fotos, vídeo, especificaciones y precio del coche premium seleccionado.">
   <meta property="og:image" id="og-image" content="https://myautoimport.es/og-car.jpg">
@@ -31,6 +31,8 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
   <meta name="theme-color" content="#0f172a">
+  
+  <script src="/api/public-config.js"></script>
 
   <script id="car-jsonld" type="application/ld+json"></script>
 
@@ -149,7 +151,7 @@
   <!-- Header -->
   <header class="site-header" role="banner">
     <div class="nav-wrap">
-      <a class="brand" href="/" aria-label="Inicio">Tu Empresa</a>
+      <a class="brand" href="/" aria-label="Inicio">My Auto Import</a>
       <button id="nav-toggle" class="nav-toggle" aria-label="Abrir menú" aria-controls="mobile-drawer" aria-expanded="false">
         <span class="bar"></span><span class="bar"></span><span class="bar"></span>
       </button>
@@ -210,9 +212,10 @@
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    const SUPABASE_URL  = "https://qsinlewdrvohrpkaxjxg.supabase.co";
-    const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzaW5sZXdkcnZvaHJwa2F4anhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyNDgzNDMsImV4cCI6MjA3MTgyNDM0M30.Zi-7odAn1LLZqw6YxyINRO4QLcjqsNhwc1TgOLQ3jQw";
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
+	//
+    const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__;
+	const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+	//
 
     const $ = sel => document.querySelector(sel);
     const params = new URLSearchParams(location.search);
@@ -250,6 +253,10 @@
         $('#og-image').setAttribute("content", data.imagenes[0]);
         $('#twitter-image').setAttribute("content", data.imagenes[0]);
       }
+	  else {
+		$('#og-image').setAttribute("content", "https://myautoimport.es/og-car.jpg");
+		$('#twitter-image').setAttribute("content", "https://myautoimport.es/og-car.jpg");
+	  }
 
       const priceMeta = document.getElementById('meta-price-amount');
       if (priceMeta) priceMeta.setAttribute('content', data.precio_objetivo ? String(Number(data.precio_objetivo)) : "");

@@ -19,7 +19,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="My Auto Import — Coches Premium Importados">
   <meta name="twitter:description" content="Vehículos verificados, importación rápida y garantía europea. Solicita tu coche a medida.">
-  <meta name="twitter:image" content="https://web-coches-rho.vercel.app/og-image.jpg">
+  <meta name="twitter:image" content="https://myautoimport.es/og-image.jpg">
 
   <!-- Favicons / PWA -->
   <link rel="icon" href="/favicon.ico" sizes="any">
@@ -27,6 +27,9 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
   <meta name="theme-color" content="#0f172a">
+
+  <script src="/api/public-config.js"></script>
+  
 
   <!-- JSON-LD AutoDealer -->
   <script type="application/ld+json">
@@ -36,9 +39,9 @@
     "name": "My Auto Import",
     "url": "https://myautoimport.es",
     "areaServed": "España",
-    "logo": "https://web-coches-rho.vercel.app/logo.png", //Falta por añadir / editar.
-    "telephone": "+34 600 000 000", //Falta por añadir / editar.
-    "sameAs": ["https://wa.me/34600000000"] //Falta por añadir / editar.
+    "logo": "https://myautoimport.es/logo.png", 
+    "telephone": "+34 600 000 000", 
+    "sameAs": ["https://wa.me/34600000000"] 
   }
   </script>
 
@@ -145,6 +148,12 @@
 
   <!-- Utils (defer) -->
   <script src="js/utils.js" defer></script>
+  
+  <script>
+    const { SITE_ORIGIN } = window.__APP_CONFIG__;
+    const linkCanon = document.querySelector('link[rel="canonical"]');
+    if (linkCanon) linkCanon.href = SITE_ORIGIN.replace(/\/$/,'') + window.location.pathname + window.location.search;
+  </script>
 </head>
 <body>
 
@@ -254,9 +263,14 @@
   <!-- App: Stock + Lead -->
   <script>
   (function(){
-    const BASE = 'https://qsinlewdrvohrpkaxjxg.supabase.co/rest/v1';
-    const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzaW5sZXdkcnZvaHJwa2F4anhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyNDgzNDMsImV4cCI6MjA3MTgyNDM0M30.Zi-7odAn1LLZqw6YxyINRO4QLcjqsNhwc1TgOLQ3jQw';
-
+    
+	//
+	const { SITE_ORIGIN } = window.__APP_CONFIG__;
+	const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__;
+	const BASE = `${SUPABASE_URL}/rest/v1`;
+	const ANON = SUPABASE_ANON_KEY;
+	//
+	
     const grid = document.getElementById('stock-grid');
     const FALLBACK = 'https://picsum.photos/seed/car/1000/700';
 
