@@ -1,4 +1,10 @@
 {
+  "functions": {
+    "api/public-config.js": { "runtime": "edge" },
+    "api/sitemap.xml":      { "runtime": "edge" },
+    "api/notify-lead.js":   { "runtime": "nodejs20.x" }
+  },
+
   "headers": [
     {
       "source": "/(.*)",
@@ -15,19 +21,20 @@
       ]
     },
     {
-      "source": "/(.*\\.(?:jpg|jpeg|png|webp|svg|css|js|woff2|json|webmanifest))",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
-    },
-    {
       "source": "/api/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "no-store" }
       ]
+    },
+    {
+      "source": "/(.*)\\.(?:jpg|jpeg|png|webp|avif|svg|css|js|woff2|woff|ttf|ico|json|webmanifest)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
     }
   ],
+
   "redirects": [
-    { "source": "/sitemap.xml", "destination": "/api/sitemap.xml", "permanent": false }
+    { "source": "/sitemap.xml", "destination": "/api/sitemap.xml", "permanent": true }
   ]
 }
