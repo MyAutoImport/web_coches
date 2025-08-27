@@ -60,7 +60,7 @@
     .drawer{position:fixed;inset:0;display:grid;grid-template-columns:1fr;pointer-events:none;z-index:60}
     .drawer-backdrop{display:none}
     .drawer-inner{
-      align-self:start;justify-self=end;
+      align-self:start;justify-self:end;
       width:clamp(320px,78vw,560px);
       height:100vh;height:100svh;height:100dvh;
       background:#0b1220;border-left:1px solid var(--nav-border);
@@ -74,6 +74,11 @@
     .drawer.open .drawer-inner{transform:translateX(0)}
     body.nav-open{overflow:hidden;touch-action:none;overscroll-behavior:contain}
     .drawer-close{width:40px;height:40px;border-radius:12px;border:1px solid var(--nav-border);background:#111827;color:#e5e7eb;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+    /* ⛔ OCULTAR drawer móvil en escritorio */
+    @media (min-width:900px){
+      #mobile-drawer{display:none!important}
+    }
 
     /* Layout */
     main{max-width:1200px;margin:0 auto;padding:28px 18px}
@@ -237,6 +242,8 @@
     let currentPage = 1;
     let total = 0;
 
+    function sanitizeHTML(s){ return (s ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
     function readParams(){
       const p = new URLSearchParams(location.search);
       const obj = {
@@ -264,7 +271,6 @@
 
     function cardHTML(c){
       const titulo = `${c.marca ?? ""} ${c.modelo ?? ""} ${c.anio ?? ""}`.trim();
-      // Si hay 'cover' lo usa, si no la primera imagen, y si falla -> fallback
       const imgSrc = c.cover || (Array.isArray(c.imagenes) && c.imagenes[0]) || FALLBACK;
       const km = (c.km ?? 0).toLocaleString("es-ES");
       const resumen = [km && `${km} km`, c.combustible, c.caja].filter(Boolean).join(" · ");
@@ -314,7 +320,6 @@
 
       results.innerHTML = `<p style="color:var(--muted)">Cargando resultados…</p>`;
 
-      // ✅ Solo tabla
       const resp = await fetchFromTable(params);
       const { data, error, count } = resp;
 
@@ -369,6 +374,10 @@
       const closeBtn  = drawer?.querySelector('.drawer-close');
       if (!toggleBtn || !drawer) return;
 
+      // 🚫 Si estamos en escritorio, no montar el drawer
+      const MQ_DESKTOP = window.matchMedia('(min-width: 900px)');
+      if (MQ_DESKTOP.matches) return;
+
       const focusableSel = ['a[href]','button:not([disabled])','input','select','textarea','[tabindex]:not([tabindex="-1"])'].join(',');
       let lastFocused = null;
 
@@ -399,6 +408,15 @@
           const first = f[0], last = f[f.length-1];
           if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
           else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+        }
+      });
+
+      // Si se redimensiona a escritorio, cerrar y limpiar estado
+      MQ_DESKTOP.addEventListener('change', e => {
+        if (e.matches) {
+          drawer.classList.remove('open');
+          document.body.classList.remove('nav-open');
+          toggleBtn.setAttribute('aria-expanded','false');
         }
       });
 
