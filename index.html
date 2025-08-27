@@ -92,7 +92,6 @@
     .drawer.open .drawer-inner{transform:translateX(0)}
     body.nav-open{overflow:hidden;touch-action:none;overscroll-behavior:contain}
     @media (min-width:900px){ #mobile-drawer{display:none} }
-
     .drawer-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
     .drawer-title{color:#fff;font-weight:800;letter-spacing:.2px}
     .drawer-close{width:40px;height:40px;border-radius:12px;border:1px solid var(--nav-border);background:#111827;color:#e5e7eb;cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -254,77 +253,138 @@
 
   <!-- App: Stock + Lead -->
   <script>
-(function(){
-  const BASE = 'https://qsinlewdrvohrpkaxjxg.supabase.co/rest/v1';
-  const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzaW5sZXdkcnZvaHJwa2F4anhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyNDgzNDMsImV4cCI6MjA3MTgyNDM0M30.Zi-7odAn1LLZqw6YxyINRO4QLcjqsNhwc1TgOLQ3jQw';
+  (function(){
+    const BASE = 'https://qsinlewdrvohrpkaxjxg.supabase.co/rest/v1';
+    const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzaW5sZXdkcnZvaHJwa2F4anhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyNDgzNDMsImV4cCI6MjA3MTgyNDM0M30.Zi-7odAn1LLZqw6YxyINRO4QLcjqsNhwc1TgOLQ3jQw';
 
-  const grid = document.getElementById('stock-grid');
-  const FALLBACK = 'https://picsum.photos/seed/car/1000/700';
+    const grid = document.getElementById('stock-grid');
+    const FALLBACK = 'https://picsum.photos/seed/car/1000/700';
 
-  function coverOf(rec){
-    if (rec.cover) return rec.cover;
-    if (Array.isArray(rec.imagenes) && rec.imagenes.length) return rec.imagenes[0];
-    if (typeof rec.imagenes === 'string') {
-      const m = rec.imagenes.match(/^{"?(.+?)"?}$/);
-      return m ? m[1] : rec.imagenes;
+    function coverOf(rec){
+      if (rec.cover) return rec.cover;
+      if (Array.isArray(rec.imagenes) && rec.imagenes.length) return rec.imagenes[0];
+      if (typeof rec.imagenes === 'string') {
+        const m = rec.imagenes.match(/^{"?(.+?)"?}$/);
+        return m ? m[1] : rec.imagenes;
+      }
+      return null;
     }
-    return null;
-  }
-  const sanitizeHTML = s => (s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    const sanitizeHTML = s => (s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
-  async function fetchJSON(url){
-    const res = await fetch(url, { headers:{ apikey: ANON, Authorization: `Bearer ${ANON}` }});
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    return res.json();
-  }
-
-  // 🔧 Simplificado: solo tabla 'cars' (sin view)
-  async function fetchCars(){
-    const sel = 'id,marca,modelo,version,anio,km,combustible,caja,imagenes,precio_objetivo,created_at,estado_publicacion';
-    const url = `${BASE}/cars`
-      + `?select=${encodeURIComponent(sel)}`
-      + `&order=created_at.desc&limit=12`
-      + `&or=${encodeURIComponent('(estado_publicacion.eq.publicado,estado_publicacion.eq.disponible,estado_publicacion.is.null)')}`;
-    return fetchJSON(url);
-  }
-
-  function render(cars){
-    grid.innerHTML = cars.map(c => {
-      const titulo = `${c.marca ?? ''} ${c.modelo ?? ''} ${c.anio ?? ''}`.trim();
-      const img    = coverOf(c) || FALLBACK;
-      const km     = c.km != null ? `${Number(c.km).toLocaleString('es-ES')} km · ` : '';
-      const sub    = `${km}${c.combustible ?? '-'} · ${c.caja ?? '-'}`;
-      const price  = c.precio_objetivo != null ? `${Number(c.precio_objetivo).toLocaleString('es-ES')} €` : 'Bajo pedido';
-      return `
-        <article class="card" role="listitem">
-          <a href="car.html?id=${encodeURIComponent(c.id)}" aria-label="Ver ${sanitizeHTML(titulo)}">
-            <img src="${img}" alt="${sanitizeHTML(titulo)}" loading="lazy" decoding="async"
-                 referrerpolicy="no-referrer"
-                 onerror="this.onerror=null;this.src='${FALLBACK}'">
-          </a>
-          <div style="padding:10px">
-            <b style="color:#fff">${sanitizeHTML(titulo)}</b><br>
-            <span>${sanitizeHTML(sub)}</span><br>
-            <span class="tag" style="color:#E5E7EB">${sanitizeHTML(price)}</span>
-          </div>
-        </article>`;
-    }).join('');
-  }
-
-  (async () => {
-    try{
-      if (!grid) return;
-      grid.innerHTML = "<p style='color:var(--muted)'>Cargando coches…</p>";
-      const cars = await fetchCars();
-      if (!cars.length){ grid.innerHTML = "<p style='color:var(--muted)'>No hay coches publicados ahora mismo.</p>"; return; }
-      render(cars);
-    }catch(e){
-      console.error(e);
-      grid.innerHTML = "<p style='color:#FCA5A5'>Error cargando coches.</p>";
+    async function fetchJSON(url){
+      const res = await fetch(url, { headers:{ apikey: ANON, Authorization: `Bearer ${ANON}` }});
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+      return res.json();
     }
+
+    async function fetchCars(){
+      const selView = 'id,marca,modelo,version,anio,km,combustible,caja,cover,precio_objetivo,created_at,estado_publicacion';
+      const urlView = `${BASE}/cars_with_cover`
+        + `?select=${encodeURIComponent(selView)}`
+        + `&order=created_at.desc&limit=12`
+        + `&or=${encodeURIComponent('(estado_publicacion.eq.publicado,estado_publicacion.eq.disponible,estado_publicacion.is.null)')}`;
+
+      try {
+        const data = await fetchJSON(urlView);
+        if (Array.isArray(data) && data.length) return data;
+        console.warn("[HOME] 'cars_with_cover' vacío, paso a 'cars'.");
+      } catch(e){
+        console.warn("[HOME] view falló, paso a 'cars':", e.message);
+      }
+
+      const sel = 'id,marca,modelo,version,anio,km,combustible,caja,imagenes,precio_objetivo,created_at,estado_publicacion';
+      const url = `${BASE}/cars?select=${encodeURIComponent(sel)}&order=created_at.desc&limit=12`;
+      return fetchJSON(url);
+    }
+
+    function render(cars){
+      grid.innerHTML = cars.map(c => {
+        const titulo = `${c.marca ?? ''} ${c.modelo ?? ''} ${c.anio ?? ''}`.trim();
+        const img    = coverOf(c) || FALLBACK;
+        const km     = c.km != null ? `${Number(c.km).toLocaleString('es-ES')} km · ` : '';
+        const sub    = `${km}${c.combustible ?? '-'} · ${c.caja ?? '-'}`;
+        const price  = c.precio_objetivo != null ? `${Number(c.precio_objetivo).toLocaleString('es-ES')} €` : 'Bajo pedido';
+        return `
+          <article class="card" role="listitem">
+            <a href="car.html?id=${encodeURIComponent(c.id)}" aria-label="Ver ${sanitizeHTML(titulo)}">
+              <img src="${img}" alt="${sanitizeHTML(titulo)}" loading="lazy" decoding="async"
+                   referrerpolicy="no-referrer"
+                   onerror="this.onerror=null;this.src='${FALLBACK}'">
+            </a>
+            <div style="padding:10px">
+              <b style="color:#fff">${sanitizeHTML(titulo)}</b><br>
+              <span>${sanitizeHTML(sub)}</span><br>
+              <span class="tag" style="color:#E5E7EB">${sanitizeHTML(price)}</span>
+            </div>
+          </article>`;
+      }).join('');
+    }
+
+    (async () => {
+      try{
+        if (!grid) return;
+        grid.innerHTML = "<p style='color:var(--muted)'>Cargando coches…</p>";
+        const cars = await fetchCars();
+        if (!cars.length){ grid.innerHTML = "<p style='color:var(--muted)'>No hay coches publicados ahora mismo.</p>"; return; }
+        render(cars);
+      }catch(e){
+        console.error(e);
+        grid.innerHTML = "<p style='color:#FCA5A5'>Error cargando coches.</p>";
+      }
+    })();
+
+    /* ===== Envío del formulario de contacto (HOME) ===== */
+    const formEl = document.getElementById('contact-form');
+    formEl?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(formEl);
+
+      // Honeypot
+      if ((fd.get('company') || '').toString().trim()) return;
+
+      const payload = {
+        nombre: (fd.get('nombre')||'').toString().trim(),
+        email:  (fd.get('email') ||'').toString().trim(),
+        telefono: (fd.get('telefono')||'').toString().trim(),
+        mensaje: (fd.get('mensaje')||'').toString().trim(),
+        coche_interes: (fd.get('coche_interes')||'').toString().trim() || null,
+        car_id: (fd.get('car_id')||'').toString().trim() || null,
+        page_url: location.href,
+        user_agent: navigator.userAgent
+      };
+
+      const statusEl = document.getElementById('form-status');
+      const submitBtn = document.getElementById('submit-btn');
+
+      // Validación con utils.js
+      if (!Validator.required(payload.nombre, 2)) { statusEl.textContent = 'Nombre inválido.'; return; }
+      if (!Validator.email(payload.email)) { statusEl.textContent = 'Email inválido.'; return; }
+      if (payload.telefono && !Validator.phone(payload.telefono)) { statusEl.textContent = 'Teléfono inválido.'; return; }
+      if (!Validator.required(payload.mensaje, 10)) { statusEl.textContent = 'Mensaje demasiado corto.'; return; }
+
+      statusEl.textContent = 'Enviando…';
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/notify-lead', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error('bad_status');
+        statusEl.textContent = '¡Gracias! Te contactaremos en breve.';
+        formEl.reset();
+        notify?.success?.('Lead enviado correctamente');
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Error enviando lead.';
+        notify?.error?.('No se pudo enviar el formulario');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
   })();
-})();
-</script>
+  </script>
 
   <!-- Menú (solo X cierra) -->
   <script>
