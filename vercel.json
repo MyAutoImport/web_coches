@@ -1,48 +1,12 @@
 {
   "version": 2,
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/public/$1"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; img-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' https://esm.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https:; font-src 'self' https://fonts.gstatic.com https: data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://myautoimport.es; upgrade-insecure-requests"
-        }
+        { "key": "X-Frame-Options", "value": "DENY" }
       ]
-    },
-    {
-      "source": "/(.*\\.(?:jpg|jpeg|png|webp|svg|css|js|woff2|json|webmanifest))",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
-    },
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store" }
-      ]
-    }
-  ],
-  "redirects": [
-    {
-      "source": "/sitemap.xml",
-      "destination": "/api/sitemap.xml",
-      "permanent": false
     }
   ]
 }
