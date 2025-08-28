@@ -19,6 +19,8 @@ const ratelimit = new Ratelimit({
 });
 
 export default async function handler(req, res) {
+  console.log("📩 /api/notify-lead endpoint called");
+
   try {
     if (req.method !== "POST") {
       return res.status(405).json({ error: "method_not_allowed" });
@@ -63,6 +65,7 @@ export default async function handler(req, res) {
     const { success, limit, remaining, reset } = await ratelimit.limit(key);
 
     if (!success) {
+      console.warn("⚠️ Rate limit exceeded:", email);
       return res.status(429).json({
         error: "too_many_requests",
         message: `Este email ha alcanzado el máximo de ${limit} envíos en 10 minutos. Intenta más tarde.`,
@@ -77,6 +80,7 @@ export default async function handler(req, res) {
     const SB_SRK = process.env.SUPABASE_SERVICE_ROLE;
 
     if (!SB_URL || !SB_SRK) {
+      console.error("❌ Falta configuración de Supabase");
       return res.status(500).json({ error: "server_misconfigured" });
     }
 
@@ -150,6 +154,8 @@ export default async function handler(req, res) {
             html
           })
         });
+
+        console.log("📧 Resend enviado a:", TO);
       } catch (e) {
         console.warn("⚠️ Resend failed:", e.message);
       }
@@ -158,6 +164,7 @@ export default async function handler(req, res) {
     // =====================
     // 6. Respuesta final
     // =====================
+    console.log("✅ Lead guardado con ID:", leadId);
     return res.status(200).json({
       ok: true,
       id: leadId,
