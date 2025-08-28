@@ -1,11 +1,45 @@
 // /api/notify-lead.js
-// Endpoint para guardar leads en Supabase y enviar email (Resend).
+// Endpoint para guardar leads en Supabase y enviar email (Resend) con rate limiting.
 // Runtime: Node.js 20 (no Edge)
+
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
+// Conexión a Upstash Redis
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
+
+// Límite: 3 peticiones por IP cada 10 minutos
+const ratelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.fixedWindow(3, "10 m"),
+  analytics: true,
+});
 
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") {
       return res.status(405).json({ error: "method_not_allowed" });
+    }
+
+    // =====================
+    // 0. Rate limiting
+    // =====================
+    const ip =
+      req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+      req.socket.remoteAddress ||
+      "unknown";
+
+    const { success, reset, remaining } = await ratelimit.limit(ip);
+
+    if (!success) {
+      return res.status(429).json({
+        error: "too_many_requests",
+        message: "Has alcanzado el máximo de 3 envíos. Intenta más tarde.",
+        reset,
+      });
     }
 
     // =====================
@@ -138,7 +172,11 @@ export default async function handler(req, res) {
     // =====================
     // 5. Respuesta final
     // =====================
-    return res.status(200).json({ ok: true, id: leadId });
+    return res.status(200).json({
+      ok: true,
+      id: leadId,
+      remaining
+    });
 
   } catch (e) {
     console.error("❌ Handler exception:", e);
