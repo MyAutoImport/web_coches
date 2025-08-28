@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "echo \"no build step\""
+    "build": "echo 'no build step'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0"
