@@ -41,7 +41,12 @@ export default async function handler(req, res) {
     const telefono = (body.telefono || "").toString().trim() || null;
     const mensaje = (body.mensaje || "").toString().trim();
     const coche_interes = (body.coche_interes || "").toString().trim() || null;
-    const car_id = (body.car_id || "").toString().trim() || null;
+    
+	let car_id = (body.car_id || "").toString().trim();
+	if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(car_id)) {
+		car_id = null;
+	}
+	
     const page_url = (body.page_url || "").toString().slice(0, 500);
     const user_agent = (body.user_agent || "").toString().slice(0, 500);
 
