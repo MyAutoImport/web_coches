@@ -75,7 +75,7 @@ export default async function handler(req, res) {
 
     const sbJson = await sbRes.json().catch(() => null);
     if (!sbRes.ok) {
-      console.error("Supabase insert error:", sbJson);
+      console.error("❌ Supabase insert error:", sbJson);
       return res.status(500).json({ error: "db_insert_failed" });
     }
 
@@ -86,7 +86,7 @@ export default async function handler(req, res) {
     // =====================
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     const TO = process.env.LEADS_TO_EMAIL;
-    const FROM = process.env.LEADS_FROM_EMAIL || "Leads <onboarding@resend.dev>";
+    const FROM = process.env.LEADS_FROM_EMAIL || "onboarding@resend.dev";
 
     if (RESEND_API_KEY && TO) {
       try {
@@ -107,7 +107,7 @@ export default async function handler(req, res) {
           </p>
         `;
 
-        await fetch("https://api.resend.com/emails", {
+        const emailRes = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${RESEND_API_KEY}`,
@@ -120,9 +120,19 @@ export default async function handler(req, res) {
             html
           })
         });
+
+        if (!emailRes.ok) {
+          const errJson = await emailRes.json().catch(() => null);
+          console.error("⚠️ Resend API error:", errJson);
+        } else {
+          console.log("✅ Email enviado correctamente a", TO);
+        }
+
       } catch (e) {
-        console.warn("Resend failed:", e.message);
+        console.warn("⚠️ Resend failed:", e.message);
       }
+    } else {
+      console.warn("⚠️ No email sent: falta RESEND_API_KEY o LEADS_TO_EMAIL");
     }
 
     // =====================
@@ -131,7 +141,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, id: leadId });
 
   } catch (e) {
-    console.error("Handler exception:", e);
+    console.error("❌ Handler exception:", e);
     return res.status(500).json({ error: "internal_error" });
   }
 }
