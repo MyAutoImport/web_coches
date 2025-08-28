@@ -1,5 +1,5 @@
 // /api/notify-lead.js
-// Endpoint para guardar leads en Supabase y enviar email (Resend) con rate limiting.
+// Endpoint para guardar leads en Supabase y enviar email (Resend) con rate limiting por email.
 // Runtime: Node.js 20 (no Edge)
 
 import { Ratelimit } from "@upstash/ratelimit";
@@ -11,10 +11,10 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-// Límite: 3 peticiones por IP cada 10 minutos
+// Límite: 3 peticiones por email cada 10 minutos
 const ratelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.fixedWindow(3, "10 m"),
+  limiter: Ratelimit.fixedWindow(2, "10 m"),
   analytics: true,
 });
 
@@ -22,24 +22,6 @@ export default async function handler(req, res) {
   try {
     if (req.method !== "POST") {
       return res.status(405).json({ error: "method_not_allowed" });
-    }
-
-    // =====================
-    // 0. Rate limiting
-    // =====================
-    const ip =
-      req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
-      req.socket.remoteAddress ||
-      "unknown";
-
-    const { success, reset, remaining } = await ratelimit.limit(ip);
-
-    if (!success) {
-      return res.status(429).json({
-        error: "too_many_requests",
-        message: "Has alcanzado el máximo de 3 envíos. Intenta más tarde.",
-        reset,
-      });
     }
 
     // =====================
@@ -75,7 +57,21 @@ export default async function handler(req, res) {
     }
 
     // =====================
-    // 3. Insert en Supabase
+    // 3. Rate limiting (por email)
+    // =====================
+    const key = `lead_limit:${email.toLowerCase()}`;
+    const { success, reset, remaining } = await ratelimit.limit(key);
+
+    if (!success) {
+      return res.status(429).json({
+        error: "too_many_requests",
+        message: "Este email ha enviado el máximo de 3 leads. Intenta más tarde.",
+        reset,
+      });
+    }
+
+    // =====================
+    // 4. Insert en Supabase
     // =====================
     const SB_URL = process.env.SUPABASE_URL;
     const SB_SRK = process.env.SUPABASE_SERVICE_ROLE;
@@ -116,7 +112,7 @@ export default async function handler(req, res) {
     const leadId = Array.isArray(sbJson) && sbJson[0]?.id ? sbJson[0].id : null;
 
     // =====================
-    // 4. Email opcional con Resend
+    // 5. Email opcional con Resend
     // =====================
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     const TO = process.env.LEADS_TO_EMAIL;
@@ -141,7 +137,7 @@ export default async function handler(req, res) {
           </p>
         `;
 
-        const emailRes = await fetch("https://api.resend.com/emails", {
+        await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${RESEND_API_KEY}`,
@@ -154,23 +150,13 @@ export default async function handler(req, res) {
             html
           })
         });
-
-        if (!emailRes.ok) {
-          const errJson = await emailRes.json().catch(() => null);
-          console.error("⚠️ Resend API error:", errJson);
-        } else {
-          console.log("✅ Email enviado correctamente a", TO);
-        }
-
       } catch (e) {
         console.warn("⚠️ Resend failed:", e.message);
       }
-    } else {
-      console.warn("⚠️ No email sent: falta RESEND_API_KEY o LEADS_TO_EMAIL");
     }
 
     // =====================
-    // 5. Respuesta final
+    // 6. Respuesta final
     // =====================
     return res.status(200).json({
       ok: true,
