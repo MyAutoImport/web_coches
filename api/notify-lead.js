@@ -11,10 +11,10 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-// Límite: 2 peticiones por email cada 10 minutos
+// Límite: 2 peticiones por email cada 10 minutos (sliding window)
 const ratelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.fixedWindow(2, "10 m"),
+  limiter: Ratelimit.slidingWindow(2, "10 m"),
   analytics: true,
 });
 
@@ -47,12 +47,12 @@ export default async function handler(req, res) {
     // 2. Rate limiting (antes de validaciones)
     // =====================
     const key = `lead_limit:${email.toLowerCase() || "unknown"}`;
-    const { success, reset, remaining } = await ratelimit.limit(key);
+    const { success, limit, remaining, reset } = await ratelimit.limit(key);
 
     if (!success) {
       return res.status(429).json({
         error: "too_many_requests",
-        message: "Este email ha alcanzado el máximo de 2 envíos en 10 minutos. Intenta más tarde.",
+        message: `Este email ha alcanzado el máximo de ${limit} envíos en 10 minutos. Intenta más tarde.`,
         reset,
       });
     }
@@ -161,7 +161,8 @@ export default async function handler(req, res) {
     return res.status(200).json({
       ok: true,
       id: leadId,
-      remaining
+      remaining,
+      reset
     });
 
   } catch (e) {
