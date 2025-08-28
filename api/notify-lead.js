@@ -67,16 +67,24 @@ export default async function handler(req, res) {
     // 3. Rate limiting (después de validar email)
     // =====================
     const key = `lead_limit:${email}`;
-    const { success, limit, remaining, reset } = await ratelimit.limit(key);
+console.log("⏳ Rate limit key:", key);
 
-    if (!success) {
-      console.warn("⚠️ Rate limit exceeded:", email);
-      return res.status(429).json({
-        error: "too_many_requests",
-        message: `Este email ha alcanzado el máximo de ${limit} envíos en 10 minutos. Intenta más tarde.`,
-        reset,
-      });
-    }
+try {
+  const { success, limit, remaining, reset } = await ratelimit.limit(key);
+
+  if (!success) {
+    console.warn("⚠️ Rate limit exceeded:", key);
+    return res.status(429).json({
+      error: "too_many_requests",
+      message: `Este email ha alcanzado el máximo de ${limit} envíos en 10 minutos. Intenta más tarde.`,
+      limit,
+      remaining,
+      reset,
+    });
+  }
+} catch (err) {
+  console.error("❌ Error en rate limit:", err);
+}
 
     // =====================
     // 4. Insert en Supabase
