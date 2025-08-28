@@ -41,12 +41,12 @@ export default async function handler(req, res) {
     const telefono = (body.telefono || "").toString().trim() || null;
     const mensaje = (body.mensaje || "").toString().trim();
     const coche_interes = (body.coche_interes || "").toString().trim() || null;
-    
-	let car_id = (body.car_id || "").toString().trim();
-	if (!/^[0-9a-f-]{36}$/i.test(car_id)) {
-		car_id = null; // si no es UUID válido → lo ponemos en NULL
-	}
-	
+
+    let car_id = (body.car_id || "").toString().trim();
+    if (!/^[0-9a-f-]{36}$/i.test(car_id)) {
+      car_id = null; // si no es UUID válido → lo ponemos en NULL
+    }
+
     const page_url = (body.page_url || "").toString().slice(0, 500);
     const user_agent = (body.user_agent || "").toString().slice(0, 500);
 
@@ -64,27 +64,23 @@ export default async function handler(req, res) {
     }
 
     // =====================
-    // 3. Rate limiting (después de validar email)
+    // 3. Rate limiting (después de validar email, antes de insertar)
     // =====================
     const key = `lead_limit:${email}`;
-console.log("⏳ Rate limit key:", key);
+    console.log("⏳ Rate limit key:", key);
 
-try {
-  const { success, limit, remaining, reset } = await ratelimit.limit(key);
+    const { success, limit, remaining, reset } = await ratelimit.limit(key);
 
-  if (!success) {
-    console.warn("⚠️ Rate limit exceeded:", key);
-    return res.status(429).json({
-      error: "too_many_requests",
-      message: `Este email ha alcanzado el máximo de ${limit} envíos en 10 minutos. Intenta más tarde.`,
-      limit,
-      remaining,
-      reset,
-    });
-  }
-} catch (err) {
-  console.error("❌ Error en rate limit:", err);
-}
+    if (!success) {
+      console.warn("⚠️ Rate limit exceeded:", key);
+      return res.status(429).json({
+        error: "too_many_requests",
+        message: `Este email ha alcanzado el máximo de ${limit} envíos en 10 minutos. Intenta más tarde.`,
+        limit,
+        remaining,
+        reset,
+      });
+    }
 
     // =====================
     // 4. Insert en Supabase
