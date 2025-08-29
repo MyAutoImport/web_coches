@@ -1,9 +1,6 @@
 // api/sitemap.js
 export default async function handler(req, res) {
-  // Dominio base
   const ORIGIN = (process.env.SITE_ORIGIN || `https://${req.headers.host}`).replace(/\/$/, "");
-
-  // Supabase
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const KEY = process.env.SUPABASE_SERVICE_ROLE || process.env.SUPABASE_ANON_KEY;
 
@@ -19,27 +16,16 @@ export default async function handler(req, res) {
     qs.set("estado_publicacion", "in.(publicado,disponible)");
 
     const r = await fetch(`${SUPABASE_URL}/rest/v1/cars?${qs.toString()}`, {
-      headers: {
-        apikey: KEY,
-        Authorization: `Bearer ${KEY}`,
-        Accept: "application/json"
-      }
+      headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, Accept: "application/json" }
     });
-
-    if (!r.ok) {
-      const txt = await r.text().catch(() => "");
-      throw new Error(`Supabase ${r.status}: ${txt}`);
-    }
+    if (!r.ok) throw new Error(`Supabase ${r.status}: ${await r.text().catch(()=> "")}`);
     cars = await r.json();
   } catch (e) {
     console.warn("[sitemap] fallback static:", e.message);
     cars = [];
   }
 
-  const iso = (v) => {
-    try { return new Date(v).toISOString(); }
-    catch { return new Date().toISOString(); }
-  };
+  const iso = v => { try { return new Date(v).toISOString(); } catch { return new Date().toISOString(); } };
 
   const now = new Date().toISOString();
   const urls = [
@@ -56,14 +42,7 @@ export default async function handler(req, res) {
   const xml =
     `<?xml version="1.0" encoding="UTF-8"?>\n` +
     `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
-    urls.map(u =>
-      `  <url>` +
-      `<loc>${u.loc}</loc>` +
-      `<lastmod>${u.lastmod}</lastmod>` +
-      `<changefreq>${u.changefreq}</changefreq>` +
-      `<priority>${u.priority}</priority>` +
-      `</url>`
-    ).join("\n") +
+    urls.map(u => `  <url><loc>${u.loc}</loc><lastmod>${u.lastmod}</lastmod><changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`).join("\n") +
     `\n</urlset>`;
 
   res.setHeader("Content-Type", "application/xml; charset=utf-8");
