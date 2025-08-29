@@ -5,17 +5,17 @@
 ---
 
 ## 0) Preparación
-- [ ] Crear rama `release` desde la rama estable.
-- [ ] Confirmar que **Vercel → Settings → Environment Variables** contiene todo lo siguiente (Production y Preview si aplica):
-  - [ ] `SUPABASE_URL`
-  - [ ] `SUPABASE_SERVICE_ROLE`
-  - [ ] `SUPABASE_ANON_KEY`
-  - [ ] `RESEND_API_KEY`
-  - [ ] `LEADS_TO_EMAIL`
-  - [ ] `LEADS_FROM_EMAIL`
-  - [ ] `SITE_ORIGIN` = `https://myautoimport.es`
-  - [ ] `UPSTASH_REDIS_REST_URL`
-  - [ ] `UPSTASH_REDIS_REST_TOKEN`
+- [x] Crear rama `release` desde la rama estable.
+- [x] Confirmar que **Vercel → Settings → Environment Variables** contiene todo lo siguiente (Production y Preview si aplica):
+  - [x] `SUPABASE_URL`
+  - [x] `SUPABASE_SERVICE_ROLE`
+  - [x] `SUPABASE_ANON_KEY`
+  - [x] `RESEND_API_KEY`
+  - [x] `LEADS_TO_EMAIL`
+  - [x] `LEADS_FROM_EMAIL`
+  - [x] `SITE_ORIGIN` = `https://myautoimport.es`
+  - [x] `UPSTASH_REDIS_REST_URL`
+  - [x] `UPSTASH_REDIS_REST_TOKEN`
 
 ---
 
