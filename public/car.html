@@ -9,7 +9,7 @@
   <meta name="robots" content="index,follow">
 
   <!-- Social -->
-  <meta property="og:type" content="product">
+  <meta property="og:type" content="article">
   <meta property="og:site_name" content="My Auto Import">
   <meta property="og:title" id="og-title" content="Coche premium — Detalle">
   <meta property="og:description" id="og-description" content="Fotos, vídeo, especificaciones y precio del coche premium seleccionado.">
@@ -212,10 +212,9 @@
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-	//
-    const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__;
-	const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-	//
+    // Config pública inyectada desde /api/public-config.js
+    const { SUPABASE_URL, SUPABASE_ANON_KEY, SITE_ORIGIN } = window.__APP_CONFIG__ || {};
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const $ = sel => document.querySelector(sel);
     const params = new URLSearchParams(location.search);
@@ -245,18 +244,20 @@
       $('#twitter-title').setAttribute("content", title);
       $('#twitter-description').setAttribute("content", data.descripcion || "Vehículo premium disponible.");
 
-      const canonicalHref = `${location.origin}/car.html?id=${encodeURIComponent(carId)}`;
+      // ---- Paso 3C).2 — canonical y og:url con SITE_ORIGIN (fallback a location.origin) ----
+      const site = (SITE_ORIGIN || location.origin).replace(/\/$/, "");
+      const canonicalHref = `${site}/car.html?id=${encodeURIComponent(carId)}`;
       document.getElementById('canonical')?.setAttribute('href', canonicalHref);
       document.getElementById('og-url')?.setAttribute('content', canonicalHref);
 
       if (data.imagenes?.[0]) {
         $('#og-image').setAttribute("content", data.imagenes[0]);
         $('#twitter-image').setAttribute("content", data.imagenes[0]);
+      } else {
+        const fallbackOG = `${site}/og-car.jpg`;
+        $('#og-image').setAttribute("content", fallbackOG);
+        $('#twitter-image').setAttribute("content", fallbackOG);
       }
-	  else {
-		$('#og-image').setAttribute("content", "https://myautoimport.es/og-car.jpg");
-		$('#twitter-image').setAttribute("content", "https://myautoimport.es/og-car.jpg");
-	  }
 
       const priceMeta = document.getElementById('meta-price-amount');
       if (priceMeta) priceMeta.setAttribute('content', data.precio_objetivo ? String(Number(data.precio_objetivo)) : "");

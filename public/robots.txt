@@ -1,5 +1,3 @@
 User-agent: *
 Allow: /
 Sitemap: https://myautoimport.es/sitemap.xml
-
-//
