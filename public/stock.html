@@ -7,19 +7,19 @@
   <title>Stock de vehículos — My Auto Import</title>
   <meta name="description" content="Explora nuestro catálogo de coches disponibles: filtra por marca, combustible, año, precio y ordena por los criterios que prefieras.">
   <meta name="robots" content="index,follow">
-  <link rel="canonical" href="https://myautoimport.es/stock.html">
+  <link id="canonical" rel="canonical" href="https://myautoimport.es/stock.html">
 
   <!-- OG -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="My Auto Import">
   <meta property="og:title" content="Stock de vehículos — My Auto Import">
   <meta property="og:description" content="Filtra y descubre nuestros coches disponibles.">
-  <meta property="og:image" content="https://myautoimport.es/og-image.jpg">
-  <meta property="og:url" content="https://myautoimport.es/stock.html">
+  <meta property="og:image" id="og-image" content="https://myautoimport.es/og-image.jpg">
+  <meta property="og:url" id="og-url" content="https://myautoimport.es/stock.html">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="MyAutoImport — Coches Premium Importados">
   <meta name="twitter:description" content="Vehículos verificados, importación rápida y garantía europea.">
-  <meta name="twitter:image" content="https://myautoimport.es/og-image.jpg">
+  <meta name="twitter:image" id="twitter-image" content="https://myautoimport.es/og-image.jpg">
 
   <!-- Favicons / PWA -->
   <link rel="icon" href="/favicon.ico" sizes="any">
@@ -34,6 +34,21 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   
   <script src="/api/public-config.js"></script>
+
+  <!-- Dinamizar canonical/OG con SITE_ORIGIN -->
+  <script>
+    (function () {
+      const cfg = window.__APP_CONFIG__ || {};
+      const site = (cfg.SITE_ORIGIN || location.origin).replace(/\/$/, "");
+      document.getElementById('canonical')?.setAttribute('href', `${site}/stock.html`);
+      document.getElementById('og-url')?.setAttribute('content', `${site}/stock.html`);
+
+      const ogImg = document.getElementById('og-image');
+      if (ogImg) ogImg.setAttribute('content', `${site}/og-image.jpg`);
+      const twImg = document.getElementById('twitter-image') || document.querySelector('meta[name="twitter:image"]');
+      if (twImg) twImg.setAttribute('content', `${site}/og-image.jpg`);
+    })();
+  </script>
 
   <style>
     :root{
@@ -126,12 +141,6 @@
   </style>
 
   <script src="/js/utils.js" defer></script>
-  
-  <script>
-    const { SITE_ORIGIN } = window.__APP_CONFIG__;
-    const linkCanon = document.querySelector('link[rel="canonical"]');
-    if (linkCanon) linkCanon.href = SITE_ORIGIN.replace(/\/$/,'') + window.location.pathname + window.location.search;
-  </script>
 </head>
 <body>
   <!-- Header -->
@@ -237,11 +246,9 @@
 
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-	
-	//
+
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__;
-	const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-	//
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const $ = s => document.querySelector(s);
     const results = $("#results");
@@ -251,7 +258,7 @@
     const pageInfo = $("#pageinfo");
 
     const PAGE = 12; // items por página
-    const FALLBACK = "https://picsum.photos/seed/car/1000/700";
+    const FALLBACK = "/img/fallback_car.jpg";
     let currentPage = 1;
     let total = 0;
 
