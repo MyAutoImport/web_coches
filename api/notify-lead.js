@@ -67,13 +67,12 @@ export default async function handler(req, res) {
     // 3. Rate limiting
     // =====================
     const key = `lead_limit:${email}`;
-    console.log("⏳ Rate limit key:", key);
-
     const { success, limit, remaining, reset } = await ratelimit.limit(key);
+
+    console.log("⏳ Rate limit check:", { key, success, limit, remaining, reset });
 
     if (!success) {
       console.warn("⚠️ Rate limit exceeded:", key);
-      // 🚨 MUY IMPORTANTE: retornamos aquí y no seguimos
       return res.status(429).json({
         error: "too_many_requests",
         message: `Este email ha alcanzado el máximo de ${limit} envíos en 10 minutos. Intenta más tarde.`,
