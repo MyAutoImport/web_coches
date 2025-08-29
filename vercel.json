@@ -1,15 +1,11 @@
 {
   "version": 2,
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/public/$1"
-    }
+
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/:path*.js" },
+    { "source": "/:path*", "destination": "/public/:path*" }
   ],
+
   "headers": [
     {
       "source": "/(.*)",
@@ -21,7 +17,7 @@
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; img-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' https://esm.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https:; font-src 'self' https://fonts.gstatic.com https: data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://myautoimport.es; upgrade-insecure-requests"
+          "value": "default-src 'self'; img-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' https://esm.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https:; font-src 'self' https://fonts.gstatic.com https: data:; frame-src https://www.youtube.com https://player.vimeo.com; media-src 'self' https: blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://myautoimport.es; upgrade-insecure-requests"
         }
       ]
     },
@@ -38,11 +34,8 @@
       ]
     }
   ],
+
   "redirects": [
-    {
-      "source": "/sitemap.xml",
-      "destination": "/api/sitemap.xml",
-      "permanent": false
-    }
+    { "source": "/sitemap.xml", "destination": "/api/sitemap.xml", "permanent": false }
   ]
 }
