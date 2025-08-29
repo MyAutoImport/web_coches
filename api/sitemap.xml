@@ -1,5 +1,5 @@
 // api/sitemap.js
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   const ORIGIN = (process.env.SITE_ORIGIN || `https://${req.headers.host}`).replace(/\/$/, "");
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const KEY = process.env.SUPABASE_SERVICE_ROLE || process.env.SUPABASE_ANON_KEY;
@@ -21,13 +21,13 @@ export default async function handler(req, res) {
     if (!r.ok) throw new Error(`Supabase ${r.status}: ${await r.text().catch(()=> "")}`);
     cars = await r.json();
   } catch (e) {
-    console.warn("[sitemap] fallback static:", e.message);
+    console.warn("[sitemap] fallback:", e.message);
     cars = [];
   }
 
   const iso = v => { try { return new Date(v).toISOString(); } catch { return new Date().toISOString(); } };
-
   const now = new Date().toISOString();
+
   const urls = [
     { loc: `${ORIGIN}/`,           lastmod: now, changefreq: "daily",  priority: "1.0" },
     { loc: `${ORIGIN}/stock.html`, lastmod: now, changefreq: "daily",  priority: "0.9" },
@@ -48,4 +48,4 @@ export default async function handler(req, res) {
   res.setHeader("Content-Type", "application/xml; charset=utf-8");
   res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=86400");
   res.status(200).send(xml);
-}
+};
