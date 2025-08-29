@@ -1,9 +1,9 @@
-// api/sitemap.xml.js
+// api/sitemap.js
 export default async function handler(req, res) {
-  // Dominio base (SITE_ORIGIN si existe; si no, el host de la request)
+  // Dominio base
   const ORIGIN = (process.env.SITE_ORIGIN || `https://${req.headers.host}`).replace(/\/$/, "");
 
-  // Claves Supabase (usa SERVICE_ROLE si está, si no ANON)
+  // Supabase
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const KEY = process.env.SUPABASE_SERVICE_ROLE || process.env.SUPABASE_ANON_KEY;
 
@@ -11,7 +11,6 @@ export default async function handler(req, res) {
   try {
     if (!SUPABASE_URL || !KEY) throw new Error("Missing Supabase env");
 
-    // Construimos la query REST
     const qs = new URLSearchParams({
       select: "id,updated_at,created_at,estado_publicacion",
       order: "updated_at.desc.nullsfirst",
@@ -42,11 +41,10 @@ export default async function handler(req, res) {
     catch { return new Date().toISOString(); }
   };
 
-  // URLs base + fichas
   const now = new Date().toISOString();
   const urls = [
-    { loc: `${ORIGIN}/`,            lastmod: now, changefreq: "daily",  priority: "1.0" },
-    { loc: `${ORIGIN}/stock.html`,  lastmod: now, changefreq: "daily",  priority: "0.9" },
+    { loc: `${ORIGIN}/`,           lastmod: now, changefreq: "daily",  priority: "1.0" },
+    { loc: `${ORIGIN}/stock.html`, lastmod: now, changefreq: "daily",  priority: "0.9" },
     ...cars.map(c => ({
       loc: `${ORIGIN}/car.html?id=${encodeURIComponent(c.id)}`,
       lastmod: iso(c.updated_at || c.created_at || Date.now()),
@@ -69,7 +67,6 @@ export default async function handler(req, res) {
     `\n</urlset>`;
 
   res.setHeader("Content-Type", "application/xml; charset=utf-8");
-  // Cache en CDN 1h + SWR 24h
   res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=86400");
   res.status(200).send(xml);
 }

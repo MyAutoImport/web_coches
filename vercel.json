@@ -2,6 +2,8 @@
   "version": 2,
 
   "rewrites": [
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/api/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/api/:path*", "destination": "/api/:path*.js" },
     { "source": "/:path*", "destination": "/public/:path*" }
   ],
@@ -35,7 +37,5 @@
     }
   ],
 
-  "redirects": [
-    { "source": "/sitemap.xml", "destination": "/api/sitemap.xml", "permanent": false }
-  ]
+  "redirects": []
 }
