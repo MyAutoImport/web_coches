@@ -14,7 +14,7 @@
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; img-src 'self' https: data: blob: https://*.supabase.co; script-src 'self' 'unsafe-inline' https://esm.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https: wss: https://*.supabase.co https://*.upstash.io https://api.resend.com; font-src 'self' https://fonts.gstatic.com data:; frame-src https://www.youtube.com https://player.vimeo.com; media-src 'self' https: blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://myautoimport.es; upgrade-insecure-requests"
+          "value": "default-src 'self'; img-src 'self' https: data: blob: https://*.supabase.co; script-src 'self' 'unsafe-inline' https://esm.sh https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https: wss: https://*.supabase.co https://*.upstash.io https://api.resend.com https://cloudflareinsights.com https://*.cloudflareinsights.com; font-src 'self' https://fonts.gstatic.com data:; frame-src https://www.youtube.com https://player.vimeo.com; media-src 'self' https: blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://myautoimport.es; upgrade-insecure-requests"
         }
       ]
     },
@@ -26,12 +26,6 @@
     },
     {
       "source": "/api/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store" }
-      ]
-    },
-    {
-      "source": "/(404\\.html|500\\.html)",
       "headers": [
         { "key": "Cache-Control", "value": "no-store" }
       ]
