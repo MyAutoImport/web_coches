@@ -1,11 +1,9 @@
 {
   "version": 2,
-
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/site.webmanifest", "destination": "/api/manifest" }
   ],
-
   "headers": [
     {
       "source": "/(.*)",
@@ -22,7 +20,7 @@
       ]
     },
     {
-      "source": "/(.*)\\.(jpg|jpeg|png|webp|svg|css|js|woff2|json|webmanifest|ico)$",
+      "source": "/(.*\\.(?:jpg|jpeg|png|webp|svg|css|js|woff2|json|webmanifest|ico))",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
@@ -33,5 +31,8 @@
         { "key": "Cache-Control", "value": "no-store" }
       ]
     }
+  ],
+  "crons": [
+    { "path": "/api/vitals-check", "schedule": "0 7 * * *" }  // todos los días a las 07:00
   ]
 }
