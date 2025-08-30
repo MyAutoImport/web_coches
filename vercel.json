@@ -1,6 +1,7 @@
 {
   "version": 2,
-  { "rewrites": [ { "source": "/sitemap.xml", "destination": "/api/sitemap" } ] }
+  "rewrites": [
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" }
   ],
   "headers": [
     {
