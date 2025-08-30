@@ -1,5 +1,5 @@
 // api/sitemap.js
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   const ORIGIN = (process.env.SITE_ORIGIN || `https://${req.headers.host}`).replace(/\/$/, "");
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const KEY = process.env.SUPABASE_SERVICE_ROLE || process.env.SUPABASE_ANON_KEY;
@@ -48,4 +48,4 @@ module.exports = async (req, res) => {
   res.setHeader("Content-Type", "application/xml; charset=utf-8");
   res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=86400");
   res.status(200).send(xml);
-};
+}
