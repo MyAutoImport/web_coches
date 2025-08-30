@@ -2,21 +2,14 @@
   "version": 2,
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
-    { "source": "/site.webmanifest", "destination": "/api/site.webmanifest" }
+    { "source": "/site.webmanifest", "destination": "/api/manifest" }
   ],
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/api/manifest",
       "headers": [
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; img-src 'self' https: data: blob: https://*.supabase.co; script-src 'self' 'unsafe-inline' https://esm.sh https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https: wss: https://*.supabase.co https://*.upstash.io https://api.resend.com; font-src 'self' https://fonts.gstatic.com data:; frame-src https://www.youtube.com https://player.vimeo.com; media-src 'self' https: blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://myautoimport.es; upgrade-insecure-requests"
-        }
+        { "key": "Content-Type", "value": "application/manifest+json; charset=utf-8" },
+        { "key": "Cache-Control", "value": "public, max-age=86400, s-maxage=86400" }
       ]
     },
     {
@@ -29,6 +22,20 @@
       "source": "/api/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; img-src 'self' https: data: blob: https://*.supabase.co; script-src 'self' 'unsafe-inline' https://esm.sh https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https: wss: https://*.supabase.co https://*.upstash.io https://api.resend.com; font-src 'self' https://fonts.gstatic.com data:; frame-src https://www.youtube.com https://player.vimeo.com; media-src 'self' https: blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://myautoimport.es; upgrade-insecure-requests"
+        }
       ]
     }
   ]

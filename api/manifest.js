@@ -1,6 +1,4 @@
 export default function handler(req, res) {
-  const SITE = process.env.SITE_ORIGIN || 'https://myautoimport.es';
-
   const manifest = {
     name: "My Auto Import",
     short_name: "MAI",
@@ -16,7 +14,6 @@ export default function handler(req, res) {
   };
 
   res.setHeader("Content-Type", "application/manifest+json; charset=utf-8");
-  // cache razonable (puedes ajustar)
   res.setHeader("Cache-Control", "public, max-age=86400, s-maxage=86400");
   res.status(200).send(JSON.stringify(manifest));
 }
