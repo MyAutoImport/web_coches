@@ -33,6 +33,6 @@
     }
   ],
   "crons": [
-    { "path": "/api/vitals-check", "schedule": "0 7 * * *" }  // todos los días a las 07:00
+    { "path": "/api/vitals-check", "schedule": "0 7 * * *" }
   ]
 }
