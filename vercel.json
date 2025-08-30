@@ -6,25 +6,6 @@
   ],
   "headers": [
     {
-      "source": "/api/manifest",
-      "headers": [
-        { "key": "Content-Type", "value": "application/manifest+json; charset=utf-8" },
-        { "key": "Cache-Control", "value": "public, max-age=86400, s-maxage=86400" }
-      ]
-    },
-    {
-      "source": "/(.*\\.(?:jpg|jpeg|png|webp|svg|css|js|woff2|json|webmanifest))",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
-    },
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store" }
-      ]
-    },
-    {
       "source": "/(.*)",
       "headers": [
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
@@ -36,6 +17,18 @@
           "key": "Content-Security-Policy",
           "value": "default-src 'self'; img-src 'self' https: data: blob: https://*.supabase.co; script-src 'self' 'unsafe-inline' https://esm.sh https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https: wss: https://*.supabase.co https://*.upstash.io https://api.resend.com; font-src 'self' https://fonts.gstatic.com data:; frame-src https://www.youtube.com https://player.vimeo.com; media-src 'self' https: blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://myautoimport.es; upgrade-insecure-requests"
         }
+      ]
+    },
+    {
+      "source": "/(.*\\.(?:jpg|jpeg|png|webp|svg|css|js|woff2|json|webmanifest|ico))",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
       ]
     }
   ]
