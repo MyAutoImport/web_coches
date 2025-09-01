@@ -49,7 +49,7 @@
       const password = form.password.value;
 
       // 👇 Forzamos la URL de retorno del email de confirmación
-      const emailRedirectTo = `${location.origin}/login.html`;
+      const emailRedirectTo = `${location.origin}/auth-callback.html`;
 
       const { data, error } = await supabase.auth.signUp({
         email,

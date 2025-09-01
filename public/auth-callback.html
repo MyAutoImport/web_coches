@@ -5,13 +5,14 @@
   const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  const q = new URLSearchParams(location.search);
   const h = new URLSearchParams(location.hash.slice(1));
-  const err = h.get("error_description");
-  if (err) { alert(decodeURIComponent(err)); location.href="/login.html"; }
-
-  // Supabase guarda la sesión automáticamente si el hash trae tokens
-  sb.auth.getSession().then(({ data }) => {
-    if (data?.session) location.href="/admin.html";
-    else location.href="/login.html";
-  });
+  const err = q.get("error_description") || h.get("error_description");
+  if (err) {
+    alert(decodeURIComponent(err));
+    location.replace("/login.html");
+  } else {
+    const { data: { session } } = await sb.auth.getSession();
+    location.replace(session ? "/admin.html" : "/login.html");
+  }
 </script>
