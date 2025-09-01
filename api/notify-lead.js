@@ -136,34 +136,133 @@ export default async function handler(req, res) {
       }
     }
 
-    // 5) Email opcional con Resend
+    // 5) Email opcional con Resend (✨ NUEVO DISEÑO, solo este bloque cambia)
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     const TO   = process.env.LEADS_TO_EMAIL;
     const FROM = process.env.LEADS_FROM_EMAIL || "onboarding@resend.dev";
 
     if (RESEND_API_KEY && TO) {
       try {
+        const origin  = (process.env.SITE_ORIGIN || "").replace(/\/$/, "");
+        const carLink = page_url || (car_id && origin ? `${origin}/car.html?id=${car_id}` : null);
+
+        const subject   = `🚗 Lead: ${nombre}${coche_interes ? ` — ${coche_interes}` : ""}`;
+        const preheader = `De ${nombre} (${email})${telefono ? ` · ${telefono}` : ""}${coche_interes ? ` · ${coche_interes}` : ""}`;
+
         const html = `
-          <h2>🚗 Nuevo lead</h2>
-          <p><b>Nombre:</b> ${nombre}</p>
-          <p><b>Email:</b> ${email}</p>
-          ${telefono ? `<p><b>Teléfono:</b> ${telefono}</p>` : ""}
-          ${coche_interes ? `<p><b>Coche:</b> ${coche_interes}</p>` : ""}
-          <p><b>Mensaje:</b></p>
-          <div style="white-space:pre-wrap;border-left:4px solid #6366F1;padding-left:12px">${mensaje}</div>
-          <hr/>
-          <p style="color:#666;font-size:.9rem">${page_url}<br/>${user_agent}</p>
-        `;
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>${subject}</title>
+</head>
+<body style="margin:0;padding:0;background:#f6f7fb;">
+  <span style="display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;overflow:hidden;">
+    ${preheader}
+  </span>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f6f7fb;padding:24px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="max-width:600px;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+          <tr>
+            <td style="background:#111827;padding:16px 20px;color:#fff;font:600 16px/1.2 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;">
+              <span style="font-size:18px">🚗</span>
+              <span style="margin-left:8px;">Nuevo lead</span>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:20px 22px;font:400 14px/1.6 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#111827;">
+              <div style="margin:0 0 12px 0;font-size:16px;font-weight:600;">
+                ${coche_interes ? coche_interes : "Consulta desde la web"}
+              </div>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 16px 0;">
+                ${nombre ? `
+                <tr>
+                  <td style="padding:6px 0;color:#6b7280;width:120px;">Nombre</td>
+                  <td style="padding:6px 0;color:#111827;font-weight:500;">${nombre}</td>
+                </tr>` : ""}
+
+                ${email ? `
+                <tr>
+                  <td style="padding:6px 0;color:#6b7280;">Email</td>
+                  <td style="padding:6px 0;"><a href="mailto:${email}" style="color:#4338ca;text-decoration:none;">${email}</a></td>
+                </tr>` : ""}
+
+                ${telefono ? `
+                <tr>
+                  <td style="padding:6px 0;color:#6b7280;">Teléfono</td>
+                  <td style="padding:6px 0;"><a href="tel:${telefono}" style="color:#111827;text-decoration:none;">${telefono}</a></td>
+                </tr>` : ""}
+
+                ${carLink ? `
+                <tr>
+                  <td style="padding:6px 0;color:#6b7280;">Ficha</td>
+                  <td style="padding:6px 0;"><a href="${carLink}" style="color:#4338ca;text-decoration:none;">${carLink}</a></td>
+                </tr>` : ""}
+              </table>
+
+              <div style="margin:8px 0 14px 0;color:#111827;font-weight:600;">Mensaje</div>
+              <div style="white-space:pre-wrap;border-left:4px solid #6366F1;background:#f3f4f6;padding:10px 12px;border-radius:8px;color:#111827;">
+                ${mensaje}
+              </div>
+
+              ${carLink ? `
+              <div style="margin:18px 0 6px 0;">
+                <a href="${carLink}"
+                   style="display:inline-block;background:#6366F1;color:#fff;text-decoration:none;padding:10px 16px;border-radius:10px;font-weight:600;">
+                   Abrir coche
+                </a>
+              </div>` : ""}
+
+              <div style="margin-top:12px;color:#6b7280;font-size:12px;">
+                ${page_url ? `${page_url}<br/>` : ""}
+                ${user_agent ? `${user_agent}` : ""}
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:14px 20px;color:#6b7280;background:#fafafa;border-top:1px solid #e5e7eb;font:400 12px/1.4 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;">
+              Responde a este email para contactar con <b>${nombre || "el interesado"}</b>.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`.trim();
+
+        const text =
+`Nuevo lead
+Nombre: ${nombre}
+Email: ${email}
+Teléfono: ${telefono || "-"}
+Coche: ${coche_interes || "-"}
+Mensaje:
+${mensaje}
+
+${carLink || page_url || ""}
+
+${user_agent || ""}`;
+
+        const payload = {
+          from: `Leads <${FROM}>`,
+          to: [TO],
+          subject,
+          html,
+          text,
+          reply_to: email
+        };
 
         await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            from: FROM,
-            to: [TO],
-            subject: `🚗 Lead: ${nombre}${coche_interes ? ` — ${coche_interes}` : ""}`,
-            html,
-          }),
+          body: JSON.stringify(payload),
         });
 
         console.log("📧 Resend enviado a:", TO);
