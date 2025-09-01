@@ -47,10 +47,18 @@
       msg.textContent = "Creando cuenta…";
       const email = form.email.value.trim();
       const password = form.password.value;
-      const { data, error } = await supabase.auth.signUp({ email, password });
+
+      // 👇 Forzamos la URL de retorno del email de confirmación
+      const emailRedirectTo = `${location.origin}/login.html`;
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo }
+      });
+
       if (error) { msg.textContent = "Error: " + error.message; return; }
-      // Según tu configuración, puede requerir confirmar por email
-      msg.textContent = "Cuenta creada. Revisa tu correo si se requiere confirmación.";
+      msg.textContent = "Cuenta creada. Revisa tu correo para confirmar.";
     });
   </script>
 </head>
