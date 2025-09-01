@@ -1,132 +1,137 @@
 // /api/notify-lead.js
-// Endpoint para guardar leads en Supabase y enviar email (Resend) con rate limiting por email.
-// Runtime: Node.js 20 (no Edge)
+// Guarda leads en Supabase y envía email (Resend) con rate limit (Upstash).
+// Runtime: Node.js 20
 
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { createClient } from "@supabase/supabase-js";
 
-// Conexión a Upstash Redis
+// --- Upstash Redis (rate limit) ---
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
-
-// Límite: 2 peticiones por email cada 10 minutos (sliding window)
 const ratelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(2, "10 m"),
+  limiter: Ratelimit.slidingWindow(2, "10 m"), // 2/10m por email
   analytics: true,
 });
 
+// --- Helpers ---
+const isUUID = (s) => /^[0-9a-f-]{36}$/i.test(String(s || "").trim());
+const isEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s || "").trim());
+const safeStr = (v, max = 500) => String(v || "").toString().slice(0, max);
+const projectRefFromUrl = (url) => {
+  try {
+    const u = new URL(url);
+    // https://xxxxx.supabase.co  -> xxxxx
+    return u.hostname.split(".")[0];
+  } catch { return ""; }
+};
+
+// --- Inserción en Supabase por REST ---
+async function insertLeadREST(SB_URL, SB_SRK, payload) {
+  const res = await fetch(`${SB_URL}/rest/v1/leads`, {
+    method: "POST",
+    headers: {
+      apikey: SB_SRK,
+      Authorization: `Bearer ${SB_SRK}`,
+      "Content-Type": "application/json",
+      "Prefer": "return=representation",
+      "Content-Profile": "public", // asegura schema public
+    },
+    body: JSON.stringify([payload]),
+  });
+
+  let data = null;
+  try { data = await res.json(); } catch {}
+  if (!res.ok) {
+    const text = typeof data === "object" ? JSON.stringify(data) : String(data);
+    throw new Error(`REST ${res.status}: ${text}`);
+  }
+  const id = Array.isArray(data) && data[0]?.id ? data[0].id : null;
+  if (!id) throw new Error("REST insert ok pero sin id en respuesta");
+  return id;
+}
+
+// --- Fallback con supabase-js (service-role) ---
+async function insertLeadSDK(SB_URL, SB_SRK, payload) {
+  const supabase = createClient(SB_URL, SB_SRK, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { "X-Client-Info": "notify-lead" } },
+  });
+  const { data, error } = await supabase.from("leads").insert(payload).select("id").single();
+  if (error) throw error;
+  return data.id;
+}
+
 export default async function handler(req, res) {
-  console.log("📩 /api/notify-lead endpoint called");
+  console.log("📩 /api/notify-lead called");
 
   try {
     if (req.method !== "POST") {
       return res.status(405).json({ error: "method_not_allowed" });
     }
 
-    // =====================
-    // 1. Leer el body (JSON)
-    // =====================
-    let body = {};
-    try {
-      body = req.body || {};
-    } catch {
-      return res.status(400).json({ error: "invalid_json" });
-    }
+    // 1) Body + validación
+    const body = req.body || {};
+    const nombre = safeStr(body.nombre).trim();
+    const email = safeStr(body.email).trim().toLowerCase();
+    const telefono = safeStr(body.telefono || "", 50) || null;
+    const mensaje = safeStr(body.mensaje, 2000).trim();
+    const coche_interes = safeStr(body.coche_interes || "", 200) || null;
 
-    const nombre = (body.nombre || "").toString().trim();
-    const email = (body.email || "").toString().trim().toLowerCase();
-    const telefono = (body.telefono || "").toString().trim() || null;
-    const mensaje = (body.mensaje || "").toString().trim();
-    const coche_interes = (body.coche_interes || "").toString().trim() || null;
+    let car_id = safeStr(body.car_id || "", 64);
+    if (!isUUID(car_id)) car_id = null;
 
-    let car_id = (body.car_id || "").toString().trim();
-    if (!/^[0-9a-f-]{36}$/i.test(car_id)) {
-      car_id = null; // si no es UUID válido → lo ponemos en NULL
-    }
+    const page_url = safeStr(body.page_url);
+    const user_agent = safeStr(body.user_agent);
 
-    const page_url = (body.page_url || "").toString().slice(0, 500);
-    const user_agent = (body.user_agent || "").toString().slice(0, 500);
+    if (nombre.length < 2) return res.status(400).json({ error: "invalid_name" });
+    if (!isEmail(email))   return res.status(400).json({ error: "invalid_email" });
+    if (mensaje.length < 10) return res.status(400).json({ error: "invalid_message" });
 
-    // =====================
-    // 2. Validación simple
-    // =====================
-    if (!nombre || nombre.length < 2) {
-      return res.status(400).json({ error: "invalid_name" });
-    }
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return res.status(400).json({ error: "invalid_email" });
-    }
-    if (!mensaje || mensaje.length < 10) {
-      return res.status(400).json({ error: "invalid_message" });
-    }
-
-    // =====================
-    // 3. Rate limiting
-    // =====================
-    const key = `lead_limit:${email}`;
-    const { success, limit, remaining, reset } = await ratelimit.limit(key);
-
-    console.log("⏳ Rate limit check:", { key, success, limit, remaining, reset });
-
+    // 2) Rate limit
+    const { success, limit, remaining, reset } = await ratelimit.limit(`lead_limit:${email}`);
+    console.log("⏳ rate:", { success, remaining, reset });
     if (!success) {
-      console.warn("⚠️ Rate limit exceeded:", key);
       return res.status(429).json({
         error: "too_many_requests",
-        message: `Este email ha alcanzado el máximo de ${limit} envíos en 10 minutos. Intenta más tarde.`,
-        limit,
-        remaining,
-        reset,
+        message: `Máximo ${limit} envíos cada 10 minutos.`,
+        limit, remaining, reset,
       });
     }
 
-    // =====================
-    // 4. Insert en Supabase
-    // =====================
+    // 3) Insert en Supabase (REST + fallback)
     const SB_URL = process.env.SUPABASE_URL;
     const SB_SRK = process.env.SUPABASE_SERVICE_ROLE;
-
     if (!SB_URL || !SB_SRK) {
-      console.error("❌ Falta configuración de Supabase");
+      console.error("❌ Faltan SUPABASE_URL / SUPABASE_SERVICE_ROLE");
       return res.status(500).json({ error: "server_misconfigured" });
     }
+    const projectRef = projectRefFromUrl(SB_URL);
+    console.log("🗃️ Supabase projectRef:", projectRef, "SB_URL:", SB_URL);
 
-    const insertPayload = [{
-      nombre,
-      email,
-      telefono,
-      mensaje,
-      coche_interes,
-      car_id,
-      page_url,
-      user_agent,
-      estado: "nuevo"
-    }];
+    const payload = {
+      nombre, email, telefono, mensaje, coche_interes, car_id, page_url, user_agent, estado: "nuevo",
+    };
 
-    const sbRes = await fetch(`${SB_URL}/rest/v1/leads`, {
-      method: "POST",
-      headers: {
-        "apikey": SB_SRK,
-        "Authorization": `Bearer ${SB_SRK}`,
-        "Content-Type": "application/json",
-        "Prefer": "return=representation"
-      },
-      body: JSON.stringify(insertPayload)
-    });
-
-    const sbJson = await sbRes.json().catch(() => null);
-    if (!sbRes.ok) {
-      console.error("❌ Supabase insert error:", sbJson);
-      return res.status(500).json({ error: "db_insert_failed" });
+    let leadId = null;
+    try {
+      leadId = await insertLeadREST(SB_URL, SB_SRK, payload);
+      console.log("✅ REST insert id:", leadId);
+    } catch (errRest) {
+      console.warn("⚠️ REST insert falló, probando SDK:", errRest.message);
+      try {
+        leadId = await insertLeadSDK(SB_URL, SB_SRK, payload);
+        console.log("✅ SDK insert id:", leadId);
+      } catch (errSdk) {
+        console.error("❌ SDK insert error:", errSdk.message);
+        return res.status(500).json({ error: "db_insert_failed" });
+      }
     }
 
-    const leadId = Array.isArray(sbJson) && sbJson[0]?.id ? sbJson[0].id : null;
-
-    // =====================
-    // 5. Email opcional con Resend
-    // =====================
+    // 4) Email (solo si hay id)
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     const TO = process.env.LEADS_TO_EMAIL;
     const FROM = process.env.LEADS_FROM_EMAIL || "onboarding@resend.dev";
@@ -140,46 +145,29 @@ export default async function handler(req, res) {
           ${telefono ? `<p><b>Teléfono:</b> ${telefono}</p>` : ""}
           ${coche_interes ? `<p><b>Coche:</b> ${coche_interes}</p>` : ""}
           <p><b>Mensaje:</b></p>
-          <div style="white-space:pre-wrap;border-left:4px solid #6366F1;padding-left:12px">
-            ${mensaje}
-          </div>
+          <div style="white-space:pre-wrap;border-left:4px solid #6366F1;padding-left:12px">${mensaje}</div>
           <hr/>
-          <p style="color:#666;font-size:.9rem">
-            ${page_url}<br/>
-            ${user_agent}
-          </p>
+          <p style="color:#666;font-size:.9rem">${page_url}<br/>${user_agent}</p>
+          <p style="color:#666;font-size:.8rem">ProjectRef: ${projectRef}</p>
         `;
-
-        await fetch("https://api.resend.com/emails", {
+        const r = await fetch("https://api.resend.com/emails", {
           method: "POST",
-          headers: {
-            "Authorization": `Bearer ${RESEND_API_KEY}`,
-            "Content-Type": "application/json"
-          },
+          headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
           body: JSON.stringify({
             from: FROM,
             to: [TO],
             subject: `🚗 Lead: ${nombre}${coche_interes ? ` — ${coche_interes}` : ""}`,
-            html
-          })
+            html,
+          }),
         });
-
-        console.log("📧 Resend enviado a:", TO);
+        if (!r.ok) console.warn("⚠️ Resend error:", await r.text());
       } catch (e) {
-        console.warn("⚠️ Resend failed:", e.message);
+        console.warn("⚠️ Resend exception:", e?.message || e);
       }
     }
 
-    // =====================
-    // 6. Respuesta final
-    // =====================
-    console.log("✅ Lead guardado con ID:", leadId);
-    return res.status(200).json({
-      ok: true,
-      id: leadId,
-      remaining,
-      reset
-    });
+    // 5) OK
+    return res.status(200).json({ ok: true, id: leadId, remaining, reset });
 
   } catch (e) {
     console.error("❌ Handler exception:", e);
