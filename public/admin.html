@@ -6,85 +6,247 @@
   <title>Admin — Leads</title>
   <link rel="icon" href="/favicon.ico">
   <style>
-    body{background:#0f172a;color:#e5e7eb;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0}
-    header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:#111827;border-bottom:1px solid #1f2937}
+    :root{--bg:#0f172a;--panel:#111827;--panel2:#0b1220;--b:#1f2937;--muted:#9ca3af;--muted2:#a3a3a3;--accent:#6366f1}
+    *{box-sizing:border-box}
+    body{background:var(--bg);color:#e5e7eb;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0}
+    header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:var(--panel);border-bottom:1px solid var(--b)}
     header h1{font-size:18px;margin:0}
     header button{background:#334155;border:0;border-radius:10px;padding:8px 12px;color:#fff;cursor:pointer}
-    .wrap{max-width:1100px;margin:24px auto;padding:0 16px}
-    table{width:100%;border-collapse:separate;border-spacing:0;background:#0b1220;border:1px solid #1f2937;border-radius:12px;overflow:hidden}
-    th,td{padding:10px 12px;border-bottom:1px solid #1f2937;font-size:14px}
-    th{background:#0f172a;text-align:left;color:#9ca3af}
+    .wrap{max-width:1200px;margin:24px auto;padding:0 16px}
+    .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
+    .toolbar input,.toolbar select{background:var(--panel2);border:1px solid var(--b);border-radius:10px;padding:10px 12px;color:#e5e7eb}
+    .toolbar button{background:var(--accent);border:0;border-radius:10px;padding:10px 12px;color:#fff;font-weight:600;cursor:pointer}
+    .toolbar .ghost{background:#334155}
+    .stats{display:flex;gap:12px;margin:0 0 12px}
+    .stat{background:var(--panel);border:1px solid var(--b);border-radius:12px;padding:12px 14px;min-width:140px}
+    .stat .k{font-size:20px;font-weight:700}
+    table{width:100%;border-collapse:separate;border-spacing:0;background:var(--panel2);border:1px solid var(--b);border-radius:12px;overflow:hidden}
+    th,td{padding:10px 12px;border-bottom:1px solid var(--b);font-size:14px;vertical-align:top}
+    th{background:var(--bg);text-align:left;color:var(--muted)}
     tr:last-child td{border-bottom:0}
     a{color:#93c5fd;text-decoration:none}
+    .badge{padding:2px 8px;border-radius:999px;font-size:12px}
+    .nuevo{background:#1f2937;color:#e5e7eb}
+    .contactado{background:#065f46}
+    .actions{display:flex;gap:6px;flex-wrap:wrap}
+    .btn{background:#334155;border:0;border-radius:8px;padding:6px 8px;color:#fff;cursor:pointer;font-size:12px}
+    .btn.warn{background:#b91c1c}
+    #msg{margin:10px 0 12px;color:var(--muted)}
   </style>
   <script src="/api/public-config.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Panel — Leads</h1>
+    <div class="actions">
+      <button id="logout">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="toolbar">
+      <input id="q" type="search" placeholder="Buscar (nombre, email, tel, coche, mensaje)..." />
+      <select id="estado">
+        <option value="">Todos los estados</option>
+        <option value="nuevo">Nuevo</option>
+        <option value="contactado">Contactado</option>
+      </select>
+      <button id="apply" class="ghost">Aplicar filtros</button>
+      <button id="export">Exportar CSV</button>
+      <span id="msg"></span>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="t" style="color:var(--muted2)">Nuevos (hoy)</div>
+        <div class="k" id="s_today">—</div>
+      </div>
+      <div class="stat">
+        <div class="t" style="color:var(--muted2)">Esta semana</div>
+        <div class="k" id="s_week">—</div>
+      </div>
+      <div class="stat">
+        <div class="t" style="color:var(--muted2)">Total</div>
+        <div class="k" id="s_total">—</div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:160px">Fecha</th>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Teléfono</th>
+          <th>Coche</th>
+          <th>Mensaje</th>
+          <th>Estado</th>
+          <th style="width:180px">URL</th>
+          <th style="width:230px">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2?bundle";
 
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const tbody = document.querySelector("tbody");
-    const msg = document.querySelector("#msg");
+    const tbody = document.getElementById("tbody");
+    const msg = document.getElementById("msg");
+    const qInput = document.getElementById("q");
+    const estadoSel = document.getElementById("estado");
 
+    const sToday = document.getElementById("s_today");
+    const sWeek  = document.getElementById("s_week");
+    const sTotal = document.getElementById("s_total");
+
+    // 1) Asegurar sesión
     async function ensureSession() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) location.href = "/login.html";
     }
 
+    // 2) Cargar leads con filtros
     async function loadLeads() {
       msg.textContent = "Cargando leads...";
-      const { data, error } = await supabase
+      let query = supabase
         .from("leads")
-        .select("created_at,nombre,email,telefono,mensaje,coche_interes,page_url")
+        .select("id,created_at,nombre,email,telefono,mensaje,coche_interes,page_url,estado", { count: "exact" })
         .order("created_at", { ascending: false })
-        .limit(200);
+        .limit(500);
 
-      if (error) {
-        msg.textContent = "Sin permiso o error: " + error.message;
-        return;
+      const q = qInput.value.trim();
+      if (q) {
+        // Búsqueda por varias columnas
+        query = query.or(
+          `nombre.ilike.%${q}%,email.ilike.%${q}%,telefono.ilike.%${q}%,mensaje.ilike.%${q}%,coche_interes.ilike.%${q}%`
+        );
       }
-      msg.textContent = "";
-      tbody.innerHTML = data.map(l => `
+
+      const est = estadoSel.value;
+      if (est) query = query.eq("estado", est);
+
+      const { data, error } = await query;
+
+      if (error) { msg.textContent = "Error: " + error.message; return; }
+      msg.textContent = (data?.length || 0) + " resultados";
+      renderRows(data || []);
+      updateStats(data || []);
+    }
+
+    // 3) Pintar filas
+    function renderRows(rows) {
+      tbody.innerHTML = rows.map(l => `
         <tr>
           <td>${new Date(l.created_at).toLocaleString("es-ES")}</td>
-          <td>${l.nombre}</td>
+          <td>${escapeHTML(l.nombre ?? "")}</td>
           <td><a href="mailto:${l.email}">${l.email}</a></td>
-          <td>${l.telefono ?? ""}</td>
-          <td>${(l.coche_interes ?? "").replace(/</g,"&lt;")}</td>
-          <td>${(l.mensaje ?? "").replace(/</g,"&lt;")}</td>
+          <td><a href="tel:${l.telefono ?? ""}">${l.telefono ?? ""}</a></td>
+          <td>${escapeHTML(l.coche_interes ?? "")}</td>
+          <td>${escapeHTML(l.mensaje ?? "")}</td>
+          <td>
+            <span class="badge ${l.estado === "contactado" ? "contactado" : "nuevo"}">
+              ${l.estado || "nuevo"}
+            </span>
+          </td>
           <td>${l.page_url ? `<a href="${l.page_url}" target="_blank">ver</a>` : ""}</td>
+          <td class="actions">
+            <button class="btn" onclick="markContacted('${l.id}')">Marcar contactado</button>
+            <button class="btn warn" onclick="delLead('${l.id}')">Borrar</button>
+          </td>
         </tr>
       `).join("");
     }
 
-    document.querySelector("#logout").addEventListener("click", async () => {
+    // 4) Estadísticas sencillas (locales sobre lo cargado)
+    function updateStats(rows) {
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const dayMs = 24*60*60*1000;
+      const monday = new Date(startOfDay - ((startOfDay.getDay()+6)%7)*dayMs); // Lunes
+
+      sToday.textContent = rows.filter(r => new Date(r.created_at) >= startOfDay).length;
+      sWeek.textContent  = rows.filter(r => new Date(r.created_at) >= monday).length;
+      sTotal.textContent = rows.length;
+    }
+
+    // 5) Acciones
+    window.markContacted = async (id) => {
+      const { error } = await supabase.from("leads").update({ estado: "contactado" }).eq("id", id);
+      if (error) { alert("No se pudo actualizar: " + error.message); return; }
+      await loadLeads();
+    };
+
+    window.delLead = async (id) => {
+      if (!confirm("¿Borrar este lead?")) return;
+      const { error } = await supabase.from("leads").delete().eq("id", id);
+      if (error) { alert("No se pudo borrar: " + error.message); return; }
+      await loadLeads();
+    };
+
+    document.getElementById("apply").onclick = loadLeads;
+
+    // 6) Exportar CSV
+    document.getElementById("export").onclick = async () => {
+      // Reutilizamos la consulta con los filtros actuales:
+      let query = supabase
+        .from("leads")
+        .select("created_at,nombre,email,telefono,coche_interes,mensaje,estado,page_url")
+        .order("created_at", { ascending: false })
+        .limit(2000);
+
+      const q = qInput.value.trim();
+      if (q) query = query.or(`nombre.ilike.%${q}%,email.ilike.%${q}%,telefono.ilike.%${q}%,mensaje.ilike.%${q}%,coche_interes.ilike.%${q}%`);
+      const est = estadoSel.value;
+      if (est) query = query.eq("estado", est);
+
+      const { data, error } = await query;
+      if (error) { alert("No se pudo exportar: " + error.message); return; }
+      const csv = toCSV(data || []);
+      download("leads.csv", csv);
+    };
+
+    // 7) Realtime: llega un lead nuevo → recargar
+    const channel = supabase.channel('realtime:leads')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leads' }, payload => {
+        loadLeads();
+      })
+      .subscribe();
+
+    // 8) Logout
+    document.getElementById("logout").onclick = async () => {
       await supabase.auth.signOut();
       location.href = "/login.html";
-    });
+    };
 
+    // Helpers
+    function escapeHTML(s){ return (s||"").replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m])); }
+    function toCSV(rows){
+      const cols = ["created_at","nombre","email","telefono","coche_interes","mensaje","estado","page_url"];
+      const head = cols.join(",");
+      const body = rows.map(r => cols.map(c => csvCell(r[c])).join(",")).join("\n");
+      return head + "\n" + body;
+    }
+    function csvCell(v){
+      const s = (v ?? "").toString().replace(/"/g,'""');
+      return /[",\n]/.test(s) ? `"${s}"` : s;
+    }
+    function download(filename, text){
+      const blob = new Blob([text], {type:"text/csv;charset=utf-8;"});
+      const url = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement("a"), { href:url, download:filename });
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    }
+
+    // Go!
     (async () => {
       await ensureSession();
       await loadLeads();
     })();
   </script>
-</head>
-<body>
-  <header>
-    <h1>Panel — Leads</h1>
-    <button id="logout">Cerrar sesión</button>
-  </header>
-  <div class="wrap">
-    <div id="msg" style="margin:10px 0 12px;color:#9ca3af;"></div>
-    <table>
-      <thead>
-        <tr>
-          <th>Fecha</th><th>Nombre</th><th>Email</th><th>Teléfono</th>
-          <th>Coche</th><th>Mensaje</th><th>URL</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
 </body>
 </html>
