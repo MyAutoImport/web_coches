@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin — Leads</title>
+  <link rel="icon" href="/favicon.ico">
+  <style>
+    body{background:#0f172a;color:#e5e7eb;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0}
+    header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:#111827;border-bottom:1px solid #1f2937}
+    header h1{font-size:18px;margin:0}
+    header button{background:#334155;border:0;border-radius:10px;padding:8px 12px;color:#fff;cursor:pointer}
+    .wrap{max-width:1100px;margin:24px auto;padding:0 16px}
+    table{width:100%;border-collapse:separate;border-spacing:0;background:#0b1220;border:1px solid #1f2937;border-radius:12px;overflow:hidden}
+    th,td{padding:10px 12px;border-bottom:1px solid #1f2937;font-size:14px}
+    th{background:#0f172a;text-align:left;color:#9ca3af}
+    tr:last-child td{border-bottom:0}
+    a{color:#93c5fd;text-decoration:none}
+  </style>
+  <script src="/api/public-config.js"></script>
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+    const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const tbody = document.querySelector("tbody");
+    const msg = document.querySelector("#msg");
+
+    async function ensureSession() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) location.href = "/login.html";
+    }
+
+    async function loadLeads() {
+      msg.textContent = "Cargando leads...";
+      const { data, error } = await supabase
+        .from("leads")
+        .select("created_at,nombre,email,telefono,mensaje,coche_interes,page_url")
+        .order("created_at", { ascending: false })
+        .limit(200);
+
+      if (error) {
+        msg.textContent = "Sin permiso o error: " + error.message;
+        return;
+      }
+      msg.textContent = "";
+      tbody.innerHTML = data.map(l => `
+        <tr>
+          <td>${new Date(l.created_at).toLocaleString("es-ES")}</td>
+          <td>${l.nombre}</td>
+          <td><a href="mailto:${l.email}">${l.email}</a></td>
+          <td>${l.telefono ?? ""}</td>
+          <td>${(l.coche_interes ?? "").replace(/</g,"&lt;")}</td>
+          <td>${(l.mensaje ?? "").replace(/</g,"&lt;")}</td>
+          <td>${l.page_url ? `<a href="${l.page_url}" target="_blank">ver</a>` : ""}</td>
+        </tr>
+      `).join("");
+    }
+
+    document.querySelector("#logout").addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      location.href = "/login.html";
+    });
+
+    (async () => {
+      await ensureSession();
+      await loadLeads();
+    })();
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Panel — Leads</h1>
+    <button id="logout">Cerrar sesión</button>
+  </header>
+  <div class="wrap">
+    <div id="msg" style="margin:10px 0 12px;color:#9ca3af;"></div>
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th><th>Nombre</th><th>Email</th><th>Teléfono</th>
+          <th>Coche</th><th>Mensaje</th><th>URL</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</body>
+</html>
