@@ -5,14 +5,16 @@
   const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  // Si viene error en hash ?error_description=...
   const q = new URLSearchParams(location.search);
   const h = new URLSearchParams(location.hash.slice(1));
   const err = q.get("error_description") || h.get("error_description");
   if (err) {
     alert(decodeURIComponent(err));
     location.replace("/login.html");
-  } else {
-    const { data: { session } } = await sb.auth.getSession();
-    location.replace(session ? "/admin.html" : "/login.html");
   }
+
+  // Tras confirmación, Supabase coloca la sesión en el storage
+  const { data: { session } } = await sb.auth.getSession();
+  location.replace(session ? "/admin.html" : "/login.html");
 </script>
