@@ -13,37 +13,48 @@
     header h1{font-size:18px;margin:0}
     header button{background:#334155;border:0;border-radius:10px;padding:8px 12px;color:#fff;cursor:pointer}
     .wrap{max-width:1200px;margin:24px auto;padding:0 16px}
+
     .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
     .toolbar input,.toolbar select{background:var(--panel2);border:1px solid var(--b);border-radius:10px;padding:10px 12px;color:#e5e7eb}
     .toolbar button{background:var(--accent);border:0;border-radius:10px;padding:10px 12px;color:#fff;font-weight:600;cursor:pointer}
     .toolbar .ghost{background:#334155}
+    #msg{margin-left:8px;color:var(--muted)}
+
     .stats{display:flex;gap:12px;margin:0 0 12px}
     .stat{background:var(--panel);border:1px solid var(--b);border-radius:12px;padding:12px 14px;min-width:140px}
+    .stat .t{color:var(--muted2)}
     .stat .k{font-size:20px;font-weight:700}
+
+    .pager{display:flex;gap:8px;align-items:center;margin:10px 0 14px}
+    .pager button{background:#334155;border:0;border-radius:10px;padding:8px 12px;color:#fff;cursor:pointer}
+    .pager button:disabled{opacity:.5;cursor:not-allowed}
+    .pager .right{margin-left:auto;display:flex;align-items:center;gap:10px;color:var(--muted)}
+    .pager select{background:var(--panel2);border:1px solid var(--b);border-radius:8px;color:#e5e7eb;padding:6px}
+
     table{width:100%;border-collapse:separate;border-spacing:0;background:var(--panel2);border:1px solid var(--b);border-radius:12px;overflow:hidden}
     th,td{padding:10px 12px;border-bottom:1px solid var(--b);font-size:14px;vertical-align:top}
     th{background:var(--bg);text-align:left;color:var(--muted)}
     tr:last-child td{border-bottom:0}
     a{color:#93c5fd;text-decoration:none}
-    .badge{padding:2px 8px;border-radius:999px;font-size:12px}
+
+    .badge{padding:2px 8px;border-radius:999px;font-size:12px;display:inline-block}
     .nuevo{background:#1f2937;color:#e5e7eb}
     .contactado{background:#065f46}
+
     .actions{display:flex;gap:6px;flex-wrap:wrap}
     .btn{background:#334155;border:0;border-radius:8px;padding:6px 8px;color:#fff;cursor:pointer;font-size:12px}
     .btn.warn{background:#b91c1c}
-    #msg{margin:10px 0 12px;color:var(--muted)}
   </style>
   <script src="/api/public-config.js"></script>
 </head>
 <body>
   <header>
     <h1>Panel — Leads</h1>
-    <div class="actions">
-      <button id="logout">Cerrar sesión</button>
-    </div>
+    <div class="actions"><button id="logout">Cerrar sesión</button></div>
   </header>
 
   <div class="wrap">
+    <!-- FILTROS -->
     <div class="toolbar">
       <input id="q" type="search" placeholder="Buscar (nombre, email, tel, coche, mensaje)..." />
       <select id="estado">
@@ -56,21 +67,32 @@
       <span id="msg"></span>
     </div>
 
+    <!-- STATS -->
     <div class="stats">
-      <div class="stat">
-        <div class="t" style="color:var(--muted2)">Nuevos (hoy)</div>
-        <div class="k" id="s_today">—</div>
-      </div>
-      <div class="stat">
-        <div class="t" style="color:var(--muted2)">Esta semana</div>
-        <div class="k" id="s_week">—</div>
-      </div>
-      <div class="stat">
-        <div class="t" style="color:var(--muted2)">Total</div>
-        <div class="k" id="s_total">—</div>
+      <div class="stat"><div class="t">Nuevos (hoy)</div><div class="k" id="s_today">—</div></div>
+      <div class="stat"><div class="t">Esta semana</div><div class="k" id="s_week">—</div></div>
+      <div class="stat"><div class="t">Total</div><div class="k" id="s_total">—</div></div>
+    </div>
+
+    <!-- PAGER -->
+    <div class="pager">
+      <button id="prevBtn">‹ Anterior</button>
+      <span id="pageInfo" style="min-width:120px;text-align:center">Página 1</span>
+      <button id="nextBtn">Siguiente ›</button>
+      <div class="right">
+        <span id="totalInfo">0 resultados</span>
+        <label style="display:flex;align-items:center;gap:6px">
+          <span>Tamaño</span>
+          <select id="pageSize">
+            <option>25</option>
+            <option>50</option>
+            <option>100</option>
+          </select>
+        </label>
       </div>
     </div>
 
+    <!-- TABLA -->
     <table>
       <thead>
         <tr>
@@ -95,64 +117,130 @@
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const tbody = document.getElementById("tbody");
-    const msg = document.getElementById("msg");
-    const qInput = document.getElementById("q");
-    const estadoSel = document.getElementById("estado");
+    // DOM
+    const tbody    = document.getElementById("tbody");
+    const msg      = document.getElementById("msg");
+    const qInput   = document.getElementById("q");
+    const estadoSel= document.getElementById("estado");
+    const sToday   = document.getElementById("s_today");
+    const sWeek    = document.getElementById("s_week");
+    const sTotal   = document.getElementById("s_total");
 
-    const sToday = document.getElementById("s_today");
-    const sWeek  = document.getElementById("s_week");
-    const sTotal = document.getElementById("s_total");
+    // Pager DOM
+    const prevBtn  = document.getElementById("prevBtn");
+    const nextBtn  = document.getElementById("nextBtn");
+    const pageInfo = document.getElementById("pageInfo");
+    const totalInfo= document.getElementById("totalInfo");
+    const sizeSel  = document.getElementById("pageSize");
 
-    // 1) Asegurar sesión
+    // Estado de paginación
+    let page = 1;
+    let pageSize = Number(sizeSel.value || 25);
+    let totalRows = 0;
+
+    sizeSel.addEventListener('change', () => {
+      pageSize = Number(sizeSel.value || 25);
+      page = 1;
+      loadLeads();
+    });
+    prevBtn.addEventListener('click', () => { if (page > 1) { page--; loadLeads(); }});
+    nextBtn.addEventListener('click', () => {
+      const maxPage = Math.max(1, Math.ceil(totalRows / pageSize));
+      if (page < maxPage) { page++; loadLeads(); }
+    });
+
+    // Sesión
     async function ensureSession() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) location.href = "/login.html";
     }
 
-    // 2) Cargar leads con filtros
-    async function loadLeads() {
-      msg.textContent = "Cargando leads...";
-      let query = supabase
-        .from("leads")
-        .select("id,created_at,nombre,email,telefono,mensaje,coche_interes,page_url,estado", { count: "exact" })
-        .order("created_at", { ascending: false })
-        .limit(500);
-
+    // Helpers de consulta (aplica filtros actuales)
+    function applyFilters(qb){
       const q = qInput.value.trim();
-      if (q) {
-        // Búsqueda por varias columnas
-        query = query.or(
-          `nombre.ilike.%${q}%,email.ilike.%${q}%,telefono.ilike.%${q}%,mensaje.ilike.%${q}%,coche_interes.ilike.%${q}%`
-        );
-      }
-
       const est = estadoSel.value;
-      if (est) query = query.eq("estado", est);
-
-      const { data, error } = await query;
-
-      if (error) { msg.textContent = "Error: " + error.message; return; }
-      msg.textContent = (data?.length || 0) + " resultados";
-      renderRows(data || []);
-      updateStats(data || []);
+      if (q) qb = qb.or(`nombre.ilike.%${q}%,email.ilike.%${q}%,telefono.ilike.%${q}%,mensaje.ilike.%${q}%,coche_interes.ilike.%${q}%`);
+      if (est) qb = qb.eq("estado", est);
+      return qb;
     }
 
-    // 3) Pintar filas
+    // Cuentas (hoy/semana/total) — sensibles a filtros
+    async function refreshCounts(){
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const monday = new Date(startOfDay);
+      monday.setDate(startOfDay.getDate() - ((startOfDay.getDay()+6)%7)); // lunes
+
+      // Total
+      {
+        let qb = supabase.from("leads").select("id", { count:"exact", head:true });
+        qb = applyFilters(qb);
+        const { count } = await qb;
+        totalRows = count || 0;
+        sTotal.textContent = totalRows;
+      }
+      // Hoy
+      {
+        let qb = supabase.from("leads").select("id", { count:"exact", head:true });
+        qb = applyFilters(qb).gte("created_at", startOfDay.toISOString());
+        const { count } = await qb;
+        sToday.textContent = count ?? 0;
+      }
+      // Semana
+      {
+        let qb = supabase.from("leads").select("id", { count:"exact", head:true });
+        qb = applyFilters(qb).gte("created_at", monday.toISOString());
+        const { count } = await qb;
+        sWeek.textContent = count ?? 0;
+      }
+    }
+
+    // Cargar página actual
+    async function loadLeads() {
+      msg.textContent = "Cargando leads...";
+
+      // 1) Refrescar contadores (actualiza totalRows)
+      await refreshCounts();
+
+      // 2) Página
+      const from = (page - 1) * pageSize;
+      const to   = from + pageSize - 1;
+
+      let qb = supabase
+        .from("leads")
+        .select("id,created_at,nombre,email,telefono,mensaje,coche_interes,page_url,estado")
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      qb = applyFilters(qb);
+
+      const { data, error } = await qb;
+      if (error) { msg.textContent = "Error: " + error.message; return; }
+
+      // 3) Pintar
+      renderRows(data || []);
+      msg.textContent = "";
+      updatePager();
+    }
+
+    function updatePager(){
+      const maxPage = Math.max(1, Math.ceil(totalRows / pageSize));
+      pageInfo.textContent = `Página ${page} de ${maxPage}`;
+      totalInfo.textContent = `${totalRows} resultados`;
+      prevBtn.disabled = (page <= 1);
+      nextBtn.disabled = (page >= maxPage);
+    }
+
     function renderRows(rows) {
       tbody.innerHTML = rows.map(l => `
         <tr>
           <td>${new Date(l.created_at).toLocaleString("es-ES")}</td>
           <td>${escapeHTML(l.nombre ?? "")}</td>
-          <td><a href="mailto:${l.email}">${l.email}</a></td>
+          <td><a href="mailto:${l.email}">${l.email ?? ""}</a></td>
           <td><a href="tel:${l.telefono ?? ""}">${l.telefono ?? ""}</a></td>
           <td>${escapeHTML(l.coche_interes ?? "")}</td>
           <td>${escapeHTML(l.mensaje ?? "")}</td>
-          <td>
-            <span class="badge ${l.estado === "contactado" ? "contactado" : "nuevo"}">
-              ${l.estado || "nuevo"}
-            </span>
-          </td>
+          <td><span class="badge ${l.estado === "contactado" ? "contactado" : "nuevo"}">${l.estado || "nuevo"}</span></td>
           <td>${l.page_url ? `<a href="${l.page_url}" target="_blank">ver</a>` : ""}</td>
           <td class="actions">
             <button class="btn" onclick="markContacted('${l.id}')">Marcar contactado</button>
@@ -162,19 +250,7 @@
       `).join("");
     }
 
-    // 4) Estadísticas sencillas (locales sobre lo cargado)
-    function updateStats(rows) {
-      const now = new Date();
-      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const dayMs = 24*60*60*1000;
-      const monday = new Date(startOfDay - ((startOfDay.getDay()+6)%7)*dayMs); // Lunes
-
-      sToday.textContent = rows.filter(r => new Date(r.created_at) >= startOfDay).length;
-      sWeek.textContent  = rows.filter(r => new Date(r.created_at) >= monday).length;
-      sTotal.textContent = rows.length;
-    }
-
-    // 5) Acciones
+    // Acciones
     window.markContacted = async (id) => {
       const { error } = await supabase.from("leads").update({ estado: "contactado" }).eq("id", id);
       if (error) { alert("No se pudo actualizar: " + error.message); return; }
@@ -185,39 +261,38 @@
       if (!confirm("¿Borrar este lead?")) return;
       const { error } = await supabase.from("leads").delete().eq("id", id);
       if (error) { alert("No se pudo borrar: " + error.message); return; }
+      // si borras el último de la página, retrocede una página
+      const remaining = (totalRows - 1) - (page - 1) * pageSize;
+      if (remaining === 0 && page > 1) page--;
       await loadLeads();
     };
 
-    document.getElementById("apply").onclick = loadLeads;
+    document.getElementById("apply").onclick = () => { page = 1; loadLeads(); };
+    qInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { page = 1; loadLeads(); } });
 
-    // 6) Exportar CSV
+    // Export CSV (todas las filas que cumplen filtros)
     document.getElementById("export").onclick = async () => {
-      // Reutilizamos la consulta con los filtros actuales:
-      let query = supabase
+      let qb = supabase
         .from("leads")
         .select("created_at,nombre,email,telefono,coche_interes,mensaje,estado,page_url")
-        .order("created_at", { ascending: false })
-        .limit(2000);
+        .order("created_at", { ascending: false });
 
-      const q = qInput.value.trim();
-      if (q) query = query.or(`nombre.ilike.%${q}%,email.ilike.%${q}%,telefono.ilike.%${q}%,mensaje.ilike.%${q}%,coche_interes.ilike.%${q}%`);
-      const est = estadoSel.value;
-      if (est) query = query.eq("estado", est);
-
-      const { data, error } = await query;
+      qb = applyFilters(qb).limit(5000); // sube si lo necesitas
+      const { data, error } = await qb;
       if (error) { alert("No se pudo exportar: " + error.message); return; }
       const csv = toCSV(data || []);
       download("leads.csv", csv);
     };
 
-    // 7) Realtime: llega un lead nuevo → recargar
+    // Realtime — cuando entra un lead nuevo, vuelve a la primera página
     const channel = supabase.channel('realtime:leads')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leads' }, payload => {
+      .on('postgres_changes', { event:'INSERT', schema:'public', table:'leads' }, () => {
+        page = 1;
         loadLeads();
       })
       .subscribe();
 
-    // 8) Logout
+    // Logout
     document.getElementById("logout").onclick = async () => {
       await supabase.auth.signOut();
       location.href = "/login.html";
