@@ -50,6 +50,7 @@
 
       // 👇 Forzamos la URL de retorno del email de confirmación
       const emailRedirectTo = `${location.origin}/auth-callback.html`;
+	  console.log('signup redirect →', emailRedirectTo);
 
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -60,6 +61,19 @@
       if (error) { msg.textContent = "Error: " + error.message; return; }
       msg.textContent = "Cuenta creada. Revisa tu correo para confirmar.";
     });
+	
+	// dentro del <script type="module"> de login.html
+	document.querySelector("#resend").addEventListener("click", async () => {
+		const email = form.email.value.trim();
+		if (!email) { msg.textContent = "Escribe tu email primero."; return; }
+		const { error } = await supabase.auth.resend({
+		type: "signup",
+		email,
+		options: { emailRedirectTo: `${location.origin}/auth-callback.html` }
+	});
+	msg.textContent = error ? ("Error: " + error.message) : "Listo. Revisa tu correo.";
+	});
+
   </script>
 </head>
 <body>
@@ -75,7 +89,13 @@
           <button id="login">Entrar</button>
           <button id="signup" class="secondary" type="button">Crear cuenta</button>
         </div>
-        <div class="msg" id="msg"></div>
+		
+		<!-- debajo de la fila de botones -->
+		<div style="margin-top:8px;text-align:center">
+		<button id="resend" class="secondary" type="button">Reenviar confirmación</button>
+		</div>
+        
+		<div class="msg" id="msg"></div>
       </form>
     </div>
   </div>
