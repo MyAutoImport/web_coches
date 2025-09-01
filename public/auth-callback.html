@@ -1,0 +1,17 @@
+<!doctype html><meta charset="utf-8">
+<script src="/api/public-config.js"></script>
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2?bundle";
+  const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const h = new URLSearchParams(location.hash.slice(1));
+  const err = h.get("error_description");
+  if (err) { alert(decodeURIComponent(err)); location.href="/login.html"; }
+
+  // Supabase guarda la sesión automáticamente si el hash trae tokens
+  sb.auth.getSession().then(({ data }) => {
+    if (data?.session) location.href="/admin.html";
+    else location.href="/login.html";
+  });
+</script>
