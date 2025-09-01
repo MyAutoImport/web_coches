@@ -1,20 +1,53 @@
 <!doctype html><meta charset="utf-8">
+<title>Confirmación — My Auto Import</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <script src="/api/public-config.js"></script>
-<script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2?bundle";
-  const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<body style="background:#0f172a;color:#e5e7eb;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0">
+  <div id="box" style="max-width:520px;margin:64px auto;padding:24px;background:#111827;border:1px solid #1f2937;border-radius:16px">
+    Procesando…
+  </div>
 
-  // Si viene error en hash ?error_description=...
-  const q = new URLSearchParams(location.search);
-  const h = new URLSearchParams(location.hash.slice(1));
-  const err = q.get("error_description") || h.get("error_description");
-  if (err) {
-    alert(decodeURIComponent(err));
-    location.replace("/login.html");
-  }
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2?bundle";
+    const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const q = new URLSearchParams(location.search);
+    const h = new URLSearchParams(location.hash.slice(1));
+    const box = document.getElementById("box");
 
-  // Tras confirmación, Supabase coloca la sesión en el storage
-  const { data: { session } } = await sb.auth.getSession();
-  location.replace(session ? "/admin.html" : "/login.html");
-</script>
+    // Si viene error de Supabase en query o hash
+    const err = q.get("error_description") || h.get("error_description");
+    if (err) {
+      alert(decodeURIComponent(err));
+      location.replace("/login.html");
+    }
+
+    // Fallback seguro: confirmar con OTP al pulsar un botón
+    if (q.get("flow") === "otp") {
+      const email = q.get("email");
+      const token = q.get("token");
+      const type  = q.get("type") || "signup";
+
+      box.innerHTML = `
+        <h1 style="margin:0 0 12px;font-size:22px">Confirmar email</h1>
+        <p>Haz clic en el botón para terminar el registro de <b>${email??""}</b>.</p>
+        <button id="confirm" style="background:#6366f1;border:0;border-radius:10px;padding:10px 14px;color:#fff;font-weight:600;cursor:pointer">Confirmar</button>
+        <div id="msg" style="margin-top:12px;color:#9ca3af"></div>
+      `;
+
+      document.getElementById("confirm").onclick = async () => {
+        document.getElementById("msg").textContent = "Confirmando…";
+        const { data, error } = await sb.auth.verifyOtp({ email, token, type: "signup" });
+        if (error) {
+          document.getElementById("msg").textContent = "Error: " + error.message;
+          return;
+        }
+        location.replace("/admin.html");
+      };
+    } else {
+      // Flujo estándar (si llegas desde {{ .ConfirmationURL }} o ya hay sesión):
+      const { data: { session } } = await sb.auth.getSession();
+      location.replace(session ? "/admin.html" : "/login.html");
+    }
+  </script>
+</body>
