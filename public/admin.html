@@ -11,6 +11,7 @@
     body{background:var(--bg);color:#e5e7eb;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0}
     header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:var(--panel);border-bottom:1px solid var(--b)}
     header h1{font-size:18px;margin:0}
+    header .who{color:var(--muted);font-size:13px;margin-right:12px}
     header button{background:#334155;border:0;border-radius:10px;padding:8px 12px;color:#fff;cursor:pointer}
     .wrap{max-width:1200px;margin:24px auto;padding:0 16px}
 
@@ -50,7 +51,10 @@
 <body>
   <header>
     <h1>Panel — Leads</h1>
-    <div class="actions"><button id="logout">Cerrar sesión</button></div>
+    <div class="actions">
+      <span id="who" class="who"></span>
+      <button id="logout">Cerrar sesión</button>
+    </div>
   </header>
 
   <div class="wrap">
@@ -104,7 +108,7 @@
           <th>Mensaje</th>
           <th>Estado</th>
           <th style="width:180px">URL</th>
-          <th style="width:230px">Acciones</th>
+          <th style="width:230px" id="th-actions">Acciones</th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
@@ -117,6 +121,10 @@
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // --- Estado admin ---
+    let IS_ADMIN = false;
+    let CURRENT_EMAIL = "";
+
     // DOM
     const tbody    = document.getElementById("tbody");
     const msg      = document.getElementById("msg");
@@ -125,6 +133,8 @@
     const sToday   = document.getElementById("s_today");
     const sWeek    = document.getElementById("s_week");
     const sTotal   = document.getElementById("s_total");
+    const whoEl    = document.getElementById("who");
+    const thActions= document.getElementById("th-actions");
 
     // Pager DOM
     const prevBtn  = document.getElementById("prevBtn");
@@ -149,10 +159,36 @@
       if (page < maxPage) { page++; loadLeads(); }
     });
 
-    // Sesión
-    async function ensureSession() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) location.href = "/login.html";
+    // --- Solo admin puede entrar ---
+    async function ensureAdmin() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        location.href = "/login.html";
+        return;
+      }
+      CURRENT_EMAIL = user.email || "";
+      try {
+        const { data: prof, error } = await supabase
+          .from("profiles")
+          .select("is_admin")
+          .eq("id", user.id)
+          .single();
+
+        IS_ADMIN = Boolean(prof?.is_admin) && !error;
+      } catch (_) {
+        IS_ADMIN = false;
+      }
+
+      if (!IS_ADMIN) {
+        alert("No tienes permisos para acceder al panel.");
+        await supabase.auth.signOut();
+        location.href = "/login.html";
+        return;
+      }
+
+      // Pinta quién eres y asegura visibilidad de Acciones
+      if (CURRENT_EMAIL) whoEl.textContent = CURRENT_EMAIL;
+      thActions.style.display = ""; // visible
     }
 
     // Helpers de consulta (aplica filtros actuales)
@@ -232,25 +268,35 @@
     }
 
     function renderRows(rows) {
-      tbody.innerHTML = rows.map(l => `
-        <tr>
-          <td>${new Date(l.created_at).toLocaleString("es-ES")}</td>
-          <td>${escapeHTML(l.nombre ?? "")}</td>
-          <td><a href="mailto:${l.email}">${l.email ?? ""}</a></td>
-          <td><a href="tel:${l.telefono ?? ""}">${l.telefono ?? ""}</a></td>
-          <td>${escapeHTML(l.coche_interes ?? "")}</td>
-          <td>${escapeHTML(l.mensaje ?? "")}</td>
-          <td><span class="badge ${l.estado === "contactado" ? "contactado" : "nuevo"}">${l.estado || "nuevo"}</span></td>
-          <td>${l.page_url ? `<a href="${l.page_url}" target="_blank">ver</a>` : ""}</td>
-          <td class="actions">
-            <button class="btn" onclick="markContacted('${l.id}')">Marcar contactado</button>
-            <button class="btn warn" onclick="delLead('${l.id}')">Borrar</button>
-          </td>
-        </tr>
-      `).join("");
+      // Si por lo que sea no somos admin (no debería pasar porque ensureAdmin ya filtró),
+      // ocultamos la columna Acciones para que no haya botones visibles.
+      if (!IS_ADMIN) thActions.style.display = "none";
+
+      tbody.innerHTML = rows.map(l => {
+        const actionsCell = IS_ADMIN
+          ? `<td class="actions">
+               <button class="btn" onclick="markContacted('${l.id}')">Marcar contactado</button>
+               <button class="btn warn" onclick="delLead('${l.id}')">Borrar</button>
+             </td>`
+          : `<td class="actions" style="display:none"></td>`;
+
+        return `
+          <tr>
+            <td>${new Date(l.created_at).toLocaleString("es-ES")}</td>
+            <td>${escapeHTML(l.nombre ?? "")}</td>
+            <td><a href="mailto:${l.email}">${l.email ?? ""}</a></td>
+            <td><a href="tel:${l.telefono ?? ""}">${l.telefono ?? ""}</a></td>
+            <td>${escapeHTML(l.coche_interes ?? "")}</td>
+            <td>${escapeHTML(l.mensaje ?? "")}</td>
+            <td><span class="badge ${l.estado === "contactado" ? "contactado" : "nuevo"}">${l.estado || "nuevo"}</span></td>
+            <td>${l.page_url ? `<a href="${l.page_url}" target="_blank">ver</a>` : ""}</td>
+            ${actionsCell}
+          </tr>
+        `;
+      }).join("");
     }
 
-    // Acciones
+    // Acciones (solo funcionarán para admin; RLS protege en servidor igualmente)
     window.markContacted = async (id) => {
       const { error } = await supabase.from("leads").update({ estado: "contactado" }).eq("id", id);
       if (error) { alert("No se pudo actualizar: " + error.message); return; }
@@ -277,7 +323,7 @@
         .select("created_at,nombre,email,telefono,coche_interes,mensaje,estado,page_url")
         .order("created_at", { ascending: false });
 
-      qb = applyFilters(qb).limit(5000); // sube si lo necesitas
+      qb = applyFilters(qb).limit(5000);
       const { data, error } = await qb;
       if (error) { alert("No se pudo exportar: " + error.message); return; }
       const csv = toCSV(data || []);
@@ -319,7 +365,7 @@
 
     // Go!
     (async () => {
-      await ensureSession();
+      await ensureAdmin();   // ⬅️ Comprobación de admin antes de todo
       await loadLeads();
     })();
   </script>
