@@ -20,7 +20,7 @@
   </style>
   <script src="/api/public-config.js"></script>
   <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2?bundle";
 
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -47,9 +47,10 @@
       msg.textContent = "Creando cuenta…";
       const email = form.email.value.trim();
       const password = form.password.value;
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) { msg.textContent = "Error: " + error.message; return; }
-      msg.textContent = "Cuenta creada. Inicia sesión.";
+      // Según tu configuración, puede requerir confirmar por email
+      msg.textContent = "Cuenta creada. Revisa tu correo si se requiere confirmación.";
     });
   </script>
 </head>
