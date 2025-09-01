@@ -136,7 +136,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // 5) Email opcional con Resend (✨ NUEVO DISEÑO, solo este bloque cambia)
+    // 5) Email opcional con Resend (✨ robusto con logs + fallback)
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     const TO   = process.env.LEADS_TO_EMAIL;
     const FROM = process.env.LEADS_FROM_EMAIL || "onboarding@resend.dev";
@@ -250,6 +250,7 @@ ${carLink || page_url || ""}
 
 ${user_agent || ""}`;
 
+        // Payload normal
         const payload = {
           from: `Leads <${FROM}>`,
           to: [TO],
@@ -259,15 +260,39 @@ ${user_agent || ""}`;
           reply_to: email
         };
 
-        await fetch("https://api.resend.com/emails", {
+        const r = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
 
-        console.log("📧 Resend enviado a:", TO);
+        const rText = await r.text();
+        console.log("📨 Resend respuesta:", r.status, rText?.slice(0, 400));
+
+        // Fallback sencillo si Resend devuelve error (formato from/subject)
+        if (!r.ok) {
+          console.warn("⚠️ Resend falló, intentando payload simple…");
+          const simple = {
+            from: FROM,            // sin nombre amigable
+            to: [TO],
+            subject: `Lead: ${nombre}${coche_interes ? ` - ${coche_interes}` : ""}`, // sin emojis
+            html,                  // mantenemos el mismo html
+            text,
+            reply_to: email
+          };
+          const r2 = await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
+            body: JSON.stringify(simple),
+          });
+          const r2Text = await r2.text();
+          console.log("📨 Resend fallback:", r2.status, r2Text?.slice(0, 400));
+          if (!r2.ok) {
+            console.error("❌ Resend error definitivo:", r2.status, r2Text);
+          }
+        }
       } catch (e) {
-        console.warn("⚠️ Resend failed:", e.message);
+        console.warn("⚠️ Resend exception:", e?.message || e);
       }
     }
 
@@ -276,7 +301,4 @@ ${user_agent || ""}`;
     return res.status(200).json({ ok: true, id: leadId, source: insertSource, remaining, reset });
 
   } catch (e) {
-    console.error("❌ Handler exception:", e);
-    return res.status(500).json({ error: "internal_error" });
-  }
-}
+    console.error("❌ Handler excepti
