@@ -1,4 +1,5 @@
-<!doctype html><meta charset="utf-8">
+<!doctype html>
+<meta charset="utf-8">
 <title>Confirmación — My Auto Import</title>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <script src="/api/public-config.js"></script>
@@ -11,43 +12,104 @@
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2?bundle";
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const q = new URLSearchParams(location.search);
-    const h = new URLSearchParams(location.hash.slice(1));
+
+    const q   = new URLSearchParams(location.search);
+    const h   = new URLSearchParams(location.hash.slice(1));
     const box = document.getElementById("box");
 
-    // Si viene error de Supabase en query o hash
-    const err = q.get("error_description") || h.get("error_description");
-    if (err) {
-      alert(decodeURIComponent(err));
-      location.replace("/login.html");
+    // 0) Errores de Supabase en query o hash
+    {
+      const err = q.get("error_description") || h.get("error_description");
+      if (err) {
+        alert(decodeURIComponent(err));
+        const from = q.get("from");
+        location.replace(from === "client" ? "/cliente-login.html" : "/login.html");
+      }
     }
 
-    // Fallback seguro: confirmar con OTP al pulsar un botón
+    // Helpers
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+    async function getDestination(session, fromParam) {
+      // si viene marcado desde el enlace
+      if (fromParam === "client") return "/mi-cuenta.html";
+      if (fromParam === "admin") {
+        // si dice admin, confirmamos con profiles
+        try {
+          const { data: prof } = await sb
+            .from("profiles")
+            .select("is_admin")
+            .eq("id", session.user.id)
+            .single();
+          return prof?.is_admin ? "/admin.html" : "/mi-cuenta.html";
+        } catch {
+          return "/mi-cuenta.html";
+        }
+      }
+      // sin from → decidimos por is_admin
+      try {
+        const { data: prof } = await sb
+          .from("profiles")
+          .select("is_admin")
+          .eq("id", session.user.id)
+          .single();
+        return prof?.is_admin ? "/admin.html" : "/mi-cuenta.html";
+      } catch {
+        return "/mi-cuenta.html";
+      }
+    }
+
+    // 1) Flujo OTP manual (fallback)
     if (q.get("flow") === "otp") {
       const email = q.get("email");
-      const token = q.get("token");
-      const type  = q.get("type") || "signup";
+      const token = q.get("token") || q.get("token_hash"); // por si acaso
+      const type  = q.get("type") || "signup"; // signup | magiclink
+      const from  = q.get("from");
 
       box.innerHTML = `
         <h1 style="margin:0 0 12px;font-size:22px">Confirmar email</h1>
-        <p>Haz clic en el botón para terminar el registro de <b>${email??""}</b>.</p>
+        <p>Haz clic en el botón para terminar el acceso de <b>${email ?? ""}</b>.</p>
         <button id="confirm" style="background:#6366f1;border:0;border-radius:10px;padding:10px 14px;color:#fff;font-weight:600;cursor:pointer">Confirmar</button>
         <div id="msg" style="margin-top:12px;color:#9ca3af"></div>
       `;
 
       document.getElementById("confirm").onclick = async () => {
-        document.getElementById("msg").textContent = "Confirmando…";
-        const { data, error } = await sb.auth.verifyOtp({ email, token, type: "signup" });
-        if (error) {
-          document.getElementById("msg").textContent = "Error: " + error.message;
-          return;
+        const msg = document.getElementById("msg");
+        msg.textContent = "Confirmando…";
+        try {
+          const { data, error } = await sb.auth.verifyOtp({ email, token, type });
+          if (error) { msg.textContent = "Error: " + error.message; return; }
+          // sesión debería existir ahora; pequeña espera por si tarda en hidratar
+          let session = null;
+          for (let i=0;i<6;i++){ const r = await sb.auth.getSession(); session = r.data.session; if (session) break; await sleep(250); }
+          if (!session) { msg.textContent = "No se pudo obtener la sesión. Vuelve a iniciar sesión."; return; }
+          const dest = await getDestination(session, from);
+          location.replace(dest);
+        } catch (e) {
+          msg.textContent = "Error: " + (e?.message || e);
         }
-        location.replace("/admin.html");
       };
     } else {
-      // Flujo estándar (si llegas desde {{ .ConfirmationURL }} o ya hay sesión):
-      const { data: { session } } = await sb.auth.getSession();
-      location.replace(session ? "/admin.html" : "/login.html");
+      // 2) Flujo estándar (enlace de verificación/magic link con hash)
+      // Supabase suele hidratar la sesión leyendo el hash. Damos un pequeño margen.
+      const from = q.get("from"); // 'client' | 'admin' | null
+
+      box.textContent = "Verificando sesión…";
+      let session = null;
+      for (let i=0;i<8;i++){ // reintenta hasta ~2s
+        const { data } = await sb.auth.getSession();
+        session = data?.session;
+        if (session) break;
+        await sleep(250);
+      }
+
+      if (!session) {
+        // no hay sesión → a login correspondiente según 'from'
+        location.replace(from === "client" ? "/cliente-login.html" : "/login.html");
+      } else {
+        const dest = await getDestination(session, from);
+        location.replace(dest);
+      }
     }
   </script>
 </body>
