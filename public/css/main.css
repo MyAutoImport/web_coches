@@ -101,3 +101,57 @@ main .card .muted{color:var(--muted)}
 
 /* Utilidades */
 .srch{display:flex;gap:8px}
+
+/* ===== FIX STOCK: evitar que el form herede el max-width del contacto ===== */
+.filters{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+/* Anular estilos globales del <form> del home (contacto) */
+.filters form{
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 12px;
+}
+
+.filters label{font-weight:600;color:#E5E7EB;font-size:.95rem}
+.filters input,
+.filters select{
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #0B1220;
+  color: #fff;
+}
+
+/* Columnas del grid de filtros */
+.filters .col-2{grid-column: span 2}
+.filters .col-3{grid-column: span 3}
+.filters .col-4{grid-column: span 4}
+.filters .col-6{grid-column: span 6}
+.filters .col-12{grid-column: span 12}
+.filters .actions{display:flex;gap:10px;align-items:end}
+
+@media (max-width:900px){
+  .filters form{grid-template-columns: 1fr 1fr}
+  .filters .col-2,
+  .filters .col-3,
+  .filters .col-4,
+  .filters .col-6,
+  .filters .col-12{grid-column: span 2}
+  .filters .actions{grid-column: span 2}
+}
+
