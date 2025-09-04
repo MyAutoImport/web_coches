@@ -208,3 +208,55 @@ main .card .muted{color:var(--muted)}
   .filters{ padding: 18px; }
   .filters form{ column-gap: 12px; row-gap: 14px; }
 }
+
+/* === STOCK: ajuste fino de grid, alturas y alineado === */
+.filters{ padding:20px 24px; border-radius:16px }
+
+.filters form{
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  column-gap:16px;          /* horizontal */
+  row-gap:16px;             /* vertical (más compacto) */
+  align-items:end;          /* alinear por la base */
+}
+
+/* Etiquetas ligeramente más marcadas y con separación uniforme */
+.filters label{
+  margin:0 0 8px 0;
+  font-weight:700;
+}
+
+/* Campos: misma altura y baseline */
+.filters input,
+.filters select{
+  height:44px;
+  padding:0 14px;
+  border-radius:10px;
+  line-height:44px;         /* asegura baseline */
+  font-size:1rem;
+}
+
+/* Evitar que los number inputs “bailen” por spinners */
+.filters input[type="number"]{
+  line-height:normal;       /* corrige en Chrome/Win */
+}
+
+/* Botonera: misma línea que los campos */
+.filters .actions{ gap:12px; align-items:end }
+.filters .actions .btn{
+  height:42px;
+  line-height:42px;
+  padding:0 18px;
+}
+
+/* Columnas (mantén tus clases) */
+.filters .col-2{grid-column:span 2}
+.filters .col-3{grid-column:span 3}
+.filters .col-4{grid-column:span 4}
+.filters .col-6{grid-column:span 6}
+.filters .col-12{grid-column:span 12}
+
+@media (max-width:900px){
+  .filters{ padding:18px }
+  .filters form{ column-gap:12px; row-gap:14px; }
+}
