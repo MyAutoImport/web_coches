@@ -155,3 +155,56 @@ main .card .muted{color:var(--muted)}
   .filters .actions{grid-column: span 2}
 }
 
+/* ===== STOCK: ajuste fino para igualar producción (espacios, alturas, alineado) ===== */
+.filters{
+  padding: 24px 24px;          /* más “aire” como prod */
+  border-radius: 18px;         /* borde un pelín mayor */
+}
+
+.filters form{
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: 16px;            /* gap horizontal como prod */
+  row-gap: 20px;               /* gap vertical entre filas */
+  align-items: end;            /* alinear campos por la base */
+}
+
+/* etiquetas un poco más compactas */
+.filters label{
+  margin: 0 0 6px 0;
+  font-weight: 700;            /* el peso visual de títulos */
+}
+
+/* entradas/selects: altura y radios como prod */
+.filters input,
+.filters select{
+  height: 48px;                /* altura uniforme */
+  padding: 0 14px;             /* padding interior */
+  border-radius: 12px;         /* esquinas algo más redondas */
+  font-size: 1rem;
+}
+
+/* Botonera: alturas y separación coherentes */
+.filters .actions{
+  display: flex;
+  gap: 12px;
+  align-items: end;
+}
+
+.filters .actions .btn{
+  height: 44px;
+  padding: 0 18px;
+  line-height: 44px;
+}
+
+/* Select con flecha nativa (sin cambiar look-and-feel) */
+.filters select{
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: none;
+}
+
+/* Responsive: mantener misma sensación en móvil */
+@media (max-width: 900px){
+  .filters{ padding: 18px; }
+  .filters form{ column-gap: 12px; row-gap: 14px; }
+}
