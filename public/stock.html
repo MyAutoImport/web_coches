@@ -3,7 +3,6 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-
   <title>Stock de vehículos — My Auto Import</title>
   <meta name="description" content="Explora nuestro catálogo de coches disponibles: filtra por marca, combustible, año, precio y ordena por los criterios que prefieras.">
   <meta name="robots" content="index,follow">
@@ -36,17 +35,16 @@
   <!-- Config -->
   <script src="/api/public-config.js"></script>
 
-  <!-- CSS (extraído a archivo) -->
+  <!-- CSS externo -->
   <link rel="stylesheet" href="/css/main.css">
 
-  <!-- Dinamizar canonical/OG con SITE_ORIGIN -->
+  <!-- Canonical/OG dinámico -->
   <script>
     (function () {
       const cfg = window.__APP_CONFIG__ || {};
       const site = (cfg.SITE_ORIGIN || location.origin).replace(/\/$/, "");
       document.getElementById('canonical')?.setAttribute('href', `${site}/stock.html`);
       document.getElementById('og-url')?.setAttribute('content', `${site}/stock.html`);
-
       const ogImg = document.getElementById('og-image');
       if (ogImg) ogImg.setAttribute('content', `${site}/og-image.jpg`);
       const twImg = document.getElementById('twitter-image') || document.querySelector('meta[name="twitter:image"]');
@@ -180,12 +178,12 @@
     const nextBtn = $("#next");
     const pageInfo = $("#pageinfo");
 
-    const PAGE = 12; // items por página
+    const PAGE = 12;
     const FALLBACK = "/img/fallback_car.jpg";
     let currentPage = 1;
     let total = 0;
 
-    function sanitizeHTML(s){ return (s ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    const sanitizeHTML = s => (s ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
     function readParams(){
       const p = new URLSearchParams(location.search);
@@ -233,7 +231,6 @@
         </article>`;
     }
 
-    // Consulta SOLO a la tabla 'cars'
     async function fetchFromTable(params){
       let q = supabase.from("cars")
         .select("id, marca, modelo, anio, km, combustible, caja, imagenes, precio_objetivo, created_at, estado_publicacion", { count: "exact" })
@@ -263,8 +260,7 @@
 
       results.innerHTML = `<p style="color:var(--muted)">Cargando resultados…</p>`;
 
-      const resp = await fetchFromTable(params);
-      const { data, error, count } = resp;
+      const { data, error, count } = await fetchFromTable(params);
 
       if(error){
         console.error(error);
@@ -310,14 +306,13 @@
     // Inicial
     fetchData();
 
-    /* ====== Drawer JS (móvil) ====== */
+    /* Drawer sólo móvil */
     (() => {
       const toggleBtn = document.getElementById('nav-toggle');
       const drawer    = document.getElementById('mobile-drawer');
       const closeBtn  = drawer?.querySelector('.drawer-close');
       if (!toggleBtn || !drawer) return;
 
-      // 🚫 En escritorio no se usa el drawer
       const MQ_DESKTOP = window.matchMedia('(min-width: 900px)');
       if (MQ_DESKTOP.matches) return;
 
@@ -354,20 +349,19 @@
         }
       });
 
-      // Si se redimensiona a escritorio, cerrar y limpiar estado
-      MQ_DESKTOP.addEventListener('change', e => {
-        if (e.matches) {
+      MQ_DESKTOP.addEventListener('change', e=>{
+        if(e.matches){
           drawer.classList.remove('open');
           document.body.classList.remove('nav-open');
           toggleBtn.setAttribute('aria-expanded','false');
         }
       });
 
-      const resetDrawerState = () => { drawer.classList.remove('open'); document.body.classList.remove('nav-open'); toggleBtn.setAttribute('aria-expanded','false'); };
-      window.addEventListener('pageshow', resetDrawerState);
-      window.addEventListener('pagehide', resetDrawerState);
-      window.addEventListener('beforeunload', resetDrawerState);
-      document.addEventListener('visibilitychange', () => { if (document.hidden) resetDrawerState(); });
+      const reset = () => { drawer.classList.remove('open'); document.body.classList.remove('nav-open'); toggleBtn.setAttribute('aria-expanded','false'); };
+      window.addEventListener('pageshow', reset);
+      window.addEventListener('pagehide', reset);
+      window.addEventListener('beforeunload', reset);
+      document.addEventListener('visibilitychange', ()=>{ if(document.hidden) reset(); });
     })();
   </script>
 </body>
