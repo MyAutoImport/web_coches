@@ -101,7 +101,7 @@ main h1{font-size:clamp(1.6rem,2.4vw,2.25rem);margin:8px 0 18px;font-weight:800;
   margin-bottom:16px;
 }
 .filters form{
-  /* 🔒 Anular estilos globales del <form> (contacto) para que no limite a 600px */
+  /* anula límites del form global del contacto */
   max-width:none !important;
   margin:0 !important;
   padding:0 !important;
@@ -113,16 +113,16 @@ main h1{font-size:clamp(1.6rem,2.4vw,2.25rem);margin:8px 0 18px;font-weight:800;
   grid-template-columns:repeat(12,1fr);
   column-gap:16px;
   row-gap:16px;
-  align-items:end;                 /* todos “apoyados” abajo */
-  grid-auto-rows:88px;             /* altura uniforme por fila */
+  align-items:end;           /* basa todos los controles */
+  grid-auto-rows:88px;       /* altura uniforme por fila */
 }
 
 /* Cada celda (label arriba + control abajo) */
 .filters form > div{
   display:flex;
   flex-direction:column;
-  justify-content:flex-end;        /* control pegado a la base */
-  min-height:88px;                 /* coincide con grid-auto-rows */
+  justify-content:flex-end;  /* control pegado a la base */
+  min-height:88px;           /* coincide con grid-auto-rows */
 }
 
 /* Etiquetas consistentes */
@@ -132,7 +132,7 @@ main h1{font-size:clamp(1.6rem,2.4vw,2.25rem);margin:8px 0 18px;font-weight:800;
   color:#E5E7EB;
   font-size:.95rem;
   line-height:1.1;
-  min-height:20px;                 /* reserva hueco fijo para label */
+  min-height:20px;           /* reserva hueco fijo para label */
 }
 
 /* Controles: altura exacta y tipografía fija (Win/Chrome) */
@@ -157,11 +157,22 @@ main h1{font-size:clamp(1.6rem,2.4vw,2.25rem);margin:8px 0 18px;font-weight:800;
 .filters input[type="number"]{ -moz-appearance:textfield }
 .filters select{ appearance:none; -webkit-appearance:none; background-image:none }
 
-/* Botones */
-.filters .actions{ display:flex; gap:12px; align-items:flex-end; align-self:end }
-.filters .actions .btn{ height:44px; line-height:44px; padding:0 18px }
+/* Botones (misma línea base que inputs) */
+.filters .actions{
+  display:flex;
+  gap:12px;
+  align-items:flex-end;
+  align-self:end;
+  grid-column:span 2;        /* ocupa 2 columnas para cuadrar la fila */
+  padding-bottom:2px;        /* compensa el glow del botón primary */
+}
+.filters .actions .btn{
+  height:44px;
+  line-height:44px;
+  padding:0 18px;
+}
 
-/* Spans de columnas */
+/* Spans de columnas utilitarios */
 .filters .col-2{grid-column:span 2}
 .filters .col-3{grid-column:span 3}
 .filters .col-4{grid-column:span 4}
@@ -186,9 +197,9 @@ main .card .muted{color:var(--muted)}
     grid-template-columns:1fr 1fr;
     column-gap:12px;
     row-gap:14px;
-    grid-auto-rows:auto;           /* evita huecos grandes en móvil */
+    grid-auto-rows:auto;     /* evita huecos grandes en móvil */
   }
   .filters form > div{ min-height:unset }
   .filters .col-2,.filters .col-3,.filters .col-4,.filters .col-6,.filters .col-12{ grid-column:span 2 }
-  .filters .actions{ grid-column:span 2 }
+  .filters .actions{ grid-column:span 2; padding-bottom:0 }
 }
