@@ -1,5 +1,6 @@
 // /public/js/auth-widget.js  (JS PURO, sin <script>)
 // Pinta login/usuario en #user-nav (desktop) y #user-nav-mobile (móvil) usando Supabase Auth.
+// Además, inyecta items en .drawer-nav para que siempre se vea en el menú.
 // Requiere que /api/public-config.js defina window.__APP_CONFIG__.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -62,8 +63,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
     const elDesktop = document.querySelector("#user-nav");          // barra (desktop)
     const elMobile  = document.querySelector("#user-nav-mobile");   // drawer (móvil)
+    const drawerNav = document.querySelector(".drawer-nav");        // lista del menú móvil
 
-    if (!elDesktop && !elMobile) { log("no existe #user-nav / #user-nav-mobile"); return; }
+    if (!elDesktop && !elMobile && !drawerNav) { log("no existe #user-nav / #user-nav-mobile / .drawer-nav"); return; }
     ensureCSS();
 
     // Placeholders inmediatos
@@ -91,22 +93,49 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
       location.replace(url.toString());
     };
 
+    // Helper: limpia items inyectados en el menú móvil para no duplicar
+    const cleanupDrawerInjected = () => {
+      if (!drawerNav) return;
+      drawerNav.querySelectorAll('[data-auth-injected="1"]').forEach(n => n.remove());
+    };
+
     async function render() {
       try {
         const { data, error } = await supabase.auth.getUser();
         if (error) throw error;
 
         const user = data?.user;
+
+        // ===== LOGOUT/NO USER =====
         if (!user) {
           if (elDesktop) paintLogin(elDesktop);
           if (elMobile)  paintLoginMobile(elMobile);
+
+          // Menú móvil: mostrar item "Login" como enlace normal
+          cleanupDrawerInjected();
+          if (drawerNav) {
+            const loginItem = document.createElement("a");
+            loginItem.href = "/login.html";
+            loginItem.className = "drawer-link";
+            loginItem.textContent = "Login";
+            loginItem.setAttribute("data-auth-injected", "1");
+            // lo colocamos ANTES del botón "Contacto" si existe,
+            // si no, lo añadimos al final
+            const contactBtn = [...drawerNav.children].find(el => el.textContent?.trim().toLowerCase() === "contacto");
+            if (contactBtn?.parentNode) {
+              drawerNav.insertBefore(loginItem, contactBtn);
+            } else {
+              drawerNav.appendChild(loginItem);
+            }
+          }
           return;
         }
 
+        // ===== USER LOGGED =====
         const name = user.user_metadata?.name || (user.email || "").split("@")[0] || "Cuenta";
         const avatar = user.user_metadata?.avatar_url || "";
 
-        // ===== Desktop =====
+        // Desktop
         if (elDesktop) {
           elDesktop.innerHTML = `
             ${avatar ? `<img class="avatar" src="${avatar}" alt="avatar" referrerpolicy="no-referrer">` : ``}
@@ -115,35 +144,27 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
             <button id="logout-btn" class="btn" type="button">Salir</button>
           `;
 
-          // --- Logout robusto (desktop) ---
+          // Logout (desktop)
           elDesktop.querySelector("#logout-btn")?.addEventListener("click", async (e) => {
             e.preventDefault();
             const btn = e.currentTarget;
             btn.disabled = true;
             btn.textContent = "Saliendo…";
-
-            // Fallback por si el proveedor tarda
             const fallbackTimer = setTimeout(hardReload, 1500);
-
-            // Si detectamos el evento de sign-out, recargamos en el acto
             const { data: sub } = supabase.auth.onAuthStateChange((event) => {
               if (event === "SIGNED_OUT") hardReload();
             });
-
             try {
-              // Limpia primero localmente (instantáneo) y luego intenta invalidar global
               await supabase.auth.signOut({ scope: "local" }).catch(() => {});
               await supabase.auth.signOut({ scope: "global" }).catch(() => {});
             } finally {
               setTimeout(() => sub.subscription?.unsubscribe?.(), 0);
-              // el fallback se encargará si algo queda colgado
-              // (de todas formas hardReload se lanza con el evento)
               void fallbackTimer;
             }
           });
         }
 
-        // ===== Móvil (drawer) =====
+        // Bloque móvil (drawer)
         if (elMobile) {
           elMobile.innerHTML = `
             <div class="row">
@@ -158,18 +179,60 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
             </div>
           `;
 
-          // --- Logout robusto (móvil) ---
+          // Logout (móvil bloque)
           elMobile.querySelector("#logout-btn-mobile")?.addEventListener("click", async (e) => {
             e.preventDefault();
             const btn = e.currentTarget;
             btn.disabled = true;
             btn.textContent = "Saliendo…";
-
             const fallbackTimer = setTimeout(hardReload, 1500);
             const { data: sub } = supabase.auth.onAuthStateChange((event) => {
               if (event === "SIGNED_OUT") hardReload();
             });
+            try {
+              await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+              await supabase.auth.signOut({ scope: "global" }).catch(() => {});
+            } finally {
+              setTimeout(() => sub.subscription?.unsubscribe?.(), 0);
+              void fallbackTimer;
+            }
+          });
+        }
 
+        // Menú móvil: también mostramos accesos dentro de la lista
+        cleanupDrawerInjected();
+        if (drawerNav) {
+          const prefsItem = document.createElement("a");
+          prefsItem.href = "/mi-cuenta.html";
+          prefsItem.className = "drawer-link";
+          prefsItem.textContent = "Preferencias";
+          prefsItem.setAttribute("data-auth-injected", "1");
+
+          const logoutItem = document.createElement("button");
+          logoutItem.type = "button";
+          logoutItem.className = "drawer-link";
+          logoutItem.textContent = "Salir";
+          logoutItem.setAttribute("data-auth-injected", "1");
+
+          // Inserta ambos antes de "Contacto" si existe; si no, al final
+          const contactBtn = [...drawerNav.children].find(el => el.textContent?.trim().toLowerCase() === "contacto");
+          if (contactBtn?.parentNode) {
+            drawerNav.insertBefore(prefsItem, contactBtn);
+            drawerNav.insertBefore(logoutItem, contactBtn);
+          } else {
+            drawerNav.appendChild(prefsItem);
+            drawerNav.appendChild(logoutItem);
+          }
+
+          // Logout (inline en la lista)
+          logoutItem.addEventListener("click", async (e) => {
+            e.preventDefault();
+            logoutItem.disabled = true;
+            logoutItem.textContent = "Saliendo…";
+            const fallbackTimer = setTimeout(hardReload, 1500);
+            const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+              if (event === "SIGNED_OUT") hardReload();
+            });
             try {
               await supabase.auth.signOut({ scope: "local" }).catch(() => {});
               await supabase.auth.signOut({ scope: "global" }).catch(() => {});
@@ -183,6 +246,15 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
         log("render error:", e);
         if (elDesktop) paintLogin(elDesktop);
         if (elMobile)  paintLoginMobile(elMobile);
+        cleanupDrawerInjected();
+        if (drawerNav) {
+          const loginItem = document.createElement("a");
+          loginItem.href = "/login.html";
+          loginItem.className = "drawer-link";
+          loginItem.textContent = "Login";
+          loginItem.setAttribute("data-auth-injected", "1");
+          drawerNav.appendChild(loginItem);
+        }
       }
     }
 
