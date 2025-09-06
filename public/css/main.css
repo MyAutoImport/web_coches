@@ -155,108 +155,92 @@ main .card .muted{color:var(--muted)}
   .filters .actions{grid-column: span 2}
 }
 
-/* ===== STOCK: ajuste fino para igualar producción (espacios, alturas, alineado) ===== */
+/* ===== STOCK (único bloque) ===== */
+main{max-width:1200px;margin:0 auto;padding:28px 18px}
+main h1{font-size:clamp(1.6rem,2.4vw,2.25rem);margin:8px 0 18px;font-weight:800;letter-spacing:.2px;color:#fff}
+
+/* Panel y grid de filtros */
 .filters{
-  padding: 24px 24px;          /* más “aire” como prod */
-  border-radius: 18px;         /* borde un pelín mayor */
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  box-shadow:var(--shadow);
+  padding:20px 24px;
+  margin-bottom:16px;
 }
-
-.filters form{
-  grid-template-columns: repeat(12, 1fr);
-  column-gap: 16px;            /* gap horizontal como prod */
-  row-gap: 20px;               /* gap vertical entre filas */
-  align-items: end;            /* alinear campos por la base */
-}
-
-/* etiquetas un poco más compactas */
-.filters label{
-  margin: 0 0 6px 0;
-  font-weight: 700;            /* el peso visual de títulos */
-}
-
-/* entradas/selects: altura y radios como prod */
-.filters input,
-.filters select{
-  height: 48px;                /* altura uniforme */
-  padding: 0 14px;             /* padding interior */
-  border-radius: 12px;         /* esquinas algo más redondas */
-  font-size: 1rem;
-}
-
-/* Botonera: alturas y separación coherentes */
-.filters .actions{
-  display: flex;
-  gap: 12px;
-  align-items: end;
-}
-
-.filters .actions .btn{
-  height: 44px;
-  padding: 0 18px;
-  line-height: 44px;
-}
-
-/* Select con flecha nativa (sin cambiar look-and-feel) */
-.filters select{
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: none;
-}
-
-/* Responsive: mantener misma sensación en móvil */
-@media (max-width: 900px){
-  .filters{ padding: 18px; }
-  .filters form{ column-gap: 12px; row-gap: 14px; }
-}
-
-/* === STOCK: ajuste fino de grid, alturas y alineado === */
-.filters{ padding:20px 24px; border-radius:16px }
-
 .filters form{
   display:grid;
   grid-template-columns:repeat(12,1fr);
-  column-gap:16px;          /* horizontal */
-  row-gap:16px;             /* vertical (más compacto) */
-  align-items:end;          /* alinear por la base */
+  column-gap:16px;
+  row-gap:16px;
+  align-items:end; /* todo alineado por la base */
 }
 
-/* Etiquetas ligeramente más marcadas y con separación uniforme */
+/* Etiquetas */
 .filters label{
   margin:0 0 8px 0;
   font-weight:700;
+  color:#E5E7EB;
+  font-size:.95rem;
 }
 
-/* Campos: misma altura y baseline */
+/* Campos */
 .filters input,
 .filters select{
-  height:44px;
+  display:block;
+  width:100%;
+  height:44px;        /* altura uniforme exacta */
   padding:0 14px;
+  border:1px solid var(--border);
   border-radius:10px;
-  line-height:44px;         /* asegura baseline */
-  font-size:1rem;
+  background:#0B1220;
+  color:#fff;
+  font-size:16px;     /* fija para que la altura sea idéntica en Win/Chrome */
+  line-height:normal; /* evita “bailes” del number */
 }
 
-/* Evitar que los number inputs “bailen” por spinners */
-.filters input[type="number"]{
-  line-height:normal;       /* corrige en Chrome/Win */
-}
+/* Quitar spinners de number (consistencia) */
+.filters input[type="number"]::-webkit-outer-spin-button,
+.filters input[type="number"]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0 }
+.filters input[type="number"]{ -moz-appearance:textfield }
 
-/* Botonera: misma línea que los campos */
-.filters .actions{ gap:12px; align-items:end }
+/* Select nativo sin flecha extra */
+.filters select{ appearance:none; -webkit-appearance:none; background-image:none }
+
+/* Botones */
+.filters .actions{ display:flex; gap:12px; align-items:end }
 .filters .actions .btn{
-  height:42px;
-  line-height:42px;
+  height:44px;
+  line-height:44px;   /* baseline igual que inputs */
   padding:0 18px;
 }
 
-/* Columnas (mantén tus clases) */
+/* Spans de columnas */
 .filters .col-2{grid-column:span 2}
 .filters .col-3{grid-column:span 3}
 .filters .col-4{grid-column:span 4}
 .filters .col-6{grid-column:span 6}
 .filters .col-12{grid-column:span 12}
 
+/* Cards resultados y pager (como ya tenías) */
+main .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:14px}
+main .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:0 4px 16px rgba(0,0,0,.35);transition:.2s}
+main .card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.45)}
+main .card img{width:100%;border-radius:12px;margin-bottom:10px;display:block;aspect-ratio:16/9;object-fit:cover;background:#0b0b0b}
+main .card .title{color:#fff;font-weight:700}
+main .card .muted{color:var(--muted)}
+.pager{display:flex;gap:8px;justify-content:center;align-items:center;margin:18px 0 6px}
+.pager button{padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:#0B1220;color:#fff;cursor:pointer}
+.pager button[disabled]{opacity:.45;cursor:not-allowed}
+
+/* Responsive */
 @media (max-width:900px){
   .filters{ padding:18px }
-  .filters form{ column-gap:12px; row-gap:14px; }
+  .filters form{ grid-template-columns:1fr 1fr; column-gap:12px; row-gap:14px }
+  .filters .col-2,
+  .filters .col-3,
+  .filters .col-4,
+  .filters .col-6,
+  .filters .col-12{ grid-column:span 2 }
+  .filters .actions{ grid-column:span 2 }
 }
