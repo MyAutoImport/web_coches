@@ -28,20 +28,19 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
     document.head.appendChild(style);
   };
 
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
   async function init() {
-    await domReady; // 🔑 asegura que #user-nav exista
+    await domReady; // asegura que #user-nav exista
 
     const el = document.querySelector("#user-nav");
     if (!el) { log("no existe #user-nav en esta página"); return; }
 
     ensureCSS();
 
-    // Espera a que esté la config (si el navegador cachea scripts, este await evita carreras)
+    // Espera a que esté la config pública
     let tries = 0;
-    while (!window.__APP_CONFIG__ && tries < 20) {
-      await new Promise(r => setTimeout(r, 50));
-      tries++;
-    }
+    while (!window.__APP_CONFIG__ && tries < 20) { await sleep(50); tries++; }
     const cfg = window.__APP_CONFIG__ || {};
     if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY) {
       log("falta config pública; muestro botón simple");
@@ -51,16 +50,35 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
     const supabase = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
 
-    const render = async () => {
+    async function getUserEventually() {
+      // Reintenta un poco para dar tiempo a hidratar la sesión tras volver del login
+      for (let i = 0; i < 12; i++) {            // ~1.2s total
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) return session.user;
+        await sleep(100);
+      }
+      // Último intento “lento” por si acaso
       try {
         const { data: { user } } = await supabase.auth.getUser();
+        if (user) return user;
+      } catch {}
+      return null;
+    }
+
+    const render = async () => {
+      try {
+        const user = await getUserEventually();
 
         if (!user) {
           el.innerHTML = `<a class="btn" href="/cliente-login.html">Login</a>`;
           return;
         }
 
-        const name = user.user_metadata?.name || user.email?.split("@")[0] || "Cuenta";
+        const name =
+          user.user_metadata?.name ||
+          user.user_metadata?.full_name ||
+          (user.email ? user.email.split("@")[0] : "Cuenta");
+
         const avatar = user.user_metadata?.avatar_url || "";
 
         el.innerHTML = `
@@ -80,7 +98,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
       }
     };
 
+    // Si el estado cambia en esta misma pestaña (login/logout), repinta
     supabase.auth.onAuthStateChange(() => render());
+
     render();
   }
 
