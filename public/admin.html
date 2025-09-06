@@ -163,7 +163,7 @@
     async function ensureAdmin() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        location.href = "/login.html";
+        location.href = "/leads-admin.html";
         return;
       }
       CURRENT_EMAIL = user.email || "";
@@ -182,7 +182,7 @@
       if (!IS_ADMIN) {
         alert("No tienes permisos para acceder al panel.");
         await supabase.auth.signOut();
-        location.href = "/login.html";
+        location.href = "/leads-admin.html";
         return;
       }
 
@@ -341,7 +341,7 @@
     // Logout
     document.getElementById("logout").onclick = async () => {
       await supabase.auth.signOut();
-      location.href = "/login.html";
+      location.href = "/leads-admin.html";
     };
 
     // Helpers
