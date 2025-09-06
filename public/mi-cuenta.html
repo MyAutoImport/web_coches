@@ -34,7 +34,7 @@
 
   // Auth gate
   const { data:{ session } } = await sb.auth.getSession();
-  if (!session) location.replace("/cliente-login.html");
+  if (!session) location.replace("/login.html");
 
   // Carga inicial
   async function load(){
@@ -90,7 +90,7 @@
   }
 
   document.getElementById("logout").onclick = async () => {
-    await sb.auth.signOut(); location.href="/cliente-login.html";
+    await sb.auth.signOut(); location.href="/login.html";
   };
   document.getElementById("save").onclick = save;
 
