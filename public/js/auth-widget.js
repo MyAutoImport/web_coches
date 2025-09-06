@@ -35,7 +35,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
   // Placeholder por defecto
   function paintLogin(el) {
-    el.innerHTML = `<a class="btn" href="/cliente-login.html">Login</a>`;
+    el.innerHTML = `<a class="btn" href="/login.html">Login</a>`;
   }
 
   async function init() {
