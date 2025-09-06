@@ -1,5 +1,7 @@
-<!-- /public/js/auth-widget.js -->
-<script type="module">
+// /public/js/auth-widget.js  (JS PURO, sin <script>)
+// Pinta login/usuario en #user-nav usando Supabase Auth.
+// Requiere que /api/public-config.js defina window.__APP_CONFIG__.
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 (function () {
@@ -83,7 +85,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
           btn.disabled = true;
           btn.textContent = "Saliendo…";
 
-          // Función de recarga dura con cache-busting (evita bfcache)
+          // Recarga dura con cache-busting (evita bfcache)
           const hardReload = () => {
             const url = new URL(location.href);
             url.searchParams.set("_", Date.now().toString());
@@ -103,8 +105,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
             await supabase.auth.signOut({ scope: "local" }).catch(() => {});
             await supabase.auth.signOut({ scope: "global" }).catch(() => {});
           } finally {
-            // Si algo queda colgado, el fallback se encargará
             setTimeout(() => sub.subscription?.unsubscribe?.(), 0);
+            // el fallback se encargará si algo queda colgado
           }
         });
       } catch (e) {
@@ -124,4 +126,3 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
   init();
 })();
-</script>
