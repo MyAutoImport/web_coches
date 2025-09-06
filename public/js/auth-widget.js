@@ -1,6 +1,6 @@
 // /public/js/auth-widget.js  (JS PURO, sin <script>)
 // Pinta login/usuario en #user-nav (desktop) y #user-nav-mobile (móvil) usando Supabase Auth.
-// Además, inyecta items en .drawer-nav para que siempre se vea en el menú.
+// Además, puede inyectar items en .drawer-nav si NO existe el bloque móvil.
 // Requiere que /api/public-config.js defina window.__APP_CONFIG__.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -62,7 +62,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
     await domReady;
 
     const elDesktop = document.querySelector("#user-nav");          // barra (desktop)
-    const elMobile  = document.querySelector("#user-nav-mobile");   // drawer (móvil)
+    const elMobile  = document.querySelector("#user-nav-mobile");   // bloque en drawer (móvil, botón lila)
     const drawerNav = document.querySelector(".drawer-nav");        // lista del menú móvil
 
     if (!elDesktop && !elMobile && !drawerNav) { log("no existe #user-nav / #user-nav-mobile / .drawer-nav"); return; }
@@ -72,7 +72,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
     if (elDesktop) paintLogin(elDesktop);
     if (elMobile)  paintLoginMobile(elMobile);
 
-    // Espera la config pública (evita condiciones de carrera)
+    // Espera la config pública
     let tries = 0;
     while (!window.__APP_CONFIG__ && tries < 40) { // ~2s
       await new Promise(r => setTimeout(r, 50));
@@ -86,17 +86,24 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
     const supabase = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
 
-    // Recarga dura con cache-busting (evita bfcache)
+    // Recarga dura con cache-busting
     const hardReload = () => {
       const url = new URL(location.href);
       url.searchParams.set("_", Date.now().toString());
       location.replace(url.toString());
     };
 
-    // Helper: limpia items inyectados en el menú móvil para no duplicar
+    // Utilidades para el drawer
     const cleanupDrawerInjected = () => {
       if (!drawerNav) return;
       drawerNav.querySelectorAll('[data-auth-injected="1"]').forEach(n => n.remove());
+    };
+    const insertBeforeContactoOrEnd = (node) => {
+      if (!drawerNav) return;
+      node.setAttribute("data-auth-injected", "1");
+      const contactBtn = [...drawerNav.children].find(el => el.textContent?.trim().toLowerCase() === "contacto");
+      if (contactBtn?.parentNode) drawerNav.insertBefore(node, contactBtn);
+      else drawerNav.appendChild(node);
     };
 
     async function render() {
@@ -106,27 +113,19 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
         const user = data?.user;
 
-        // ===== LOGOUT/NO USER =====
+        // ===== NO USER (logout) =====
         if (!user) {
           if (elDesktop) paintLogin(elDesktop);
           if (elMobile)  paintLoginMobile(elMobile);
 
-          // Menú móvil: mostrar item "Login" como enlace normal
+          // Si hay bloque móvil (botón lila), NO añadimos otro "Login" a la lista
           cleanupDrawerInjected();
-          if (drawerNav) {
+          if (drawerNav && !elMobile) {
             const loginItem = document.createElement("a");
             loginItem.href = "/login.html";
             loginItem.className = "drawer-link";
             loginItem.textContent = "Login";
-            loginItem.setAttribute("data-auth-injected", "1");
-            // lo colocamos ANTES del botón "Contacto" si existe,
-            // si no, lo añadimos al final
-            const contactBtn = [...drawerNav.children].find(el => el.textContent?.trim().toLowerCase() === "contacto");
-            if (contactBtn?.parentNode) {
-              drawerNav.insertBefore(loginItem, contactBtn);
-            } else {
-              drawerNav.appendChild(loginItem);
-            }
+            insertBeforeContactoOrEnd(loginItem);
           }
           return;
         }
@@ -144,7 +143,6 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
             <button id="logout-btn" class="btn" type="button">Salir</button>
           `;
 
-          // Logout (desktop)
           elDesktop.querySelector("#logout-btn")?.addEventListener("click", async (e) => {
             e.preventDefault();
             const btn = e.currentTarget;
@@ -179,7 +177,6 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
             </div>
           `;
 
-          // Logout (móvil bloque)
           elMobile.querySelector("#logout-btn-mobile")?.addEventListener("click", async (e) => {
             e.preventDefault();
             const btn = e.currentTarget;
@@ -199,32 +196,21 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
           });
         }
 
-        // Menú móvil: también mostramos accesos dentro de la lista
+        // Menú móvil: solo inyectamos accesos si NO hay bloque móvil propio
         cleanupDrawerInjected();
-        if (drawerNav) {
+        if (drawerNav && !elMobile) {
           const prefsItem = document.createElement("a");
           prefsItem.href = "/mi-cuenta.html";
           prefsItem.className = "drawer-link";
           prefsItem.textContent = "Preferencias";
-          prefsItem.setAttribute("data-auth-injected", "1");
+          insertBeforeContactoOrEnd(prefsItem);
 
           const logoutItem = document.createElement("button");
           logoutItem.type = "button";
           logoutItem.className = "drawer-link";
           logoutItem.textContent = "Salir";
-          logoutItem.setAttribute("data-auth-injected", "1");
+          insertBeforeContactoOrEnd(logoutItem);
 
-          // Inserta ambos antes de "Contacto" si existe; si no, al final
-          const contactBtn = [...drawerNav.children].find(el => el.textContent?.trim().toLowerCase() === "contacto");
-          if (contactBtn?.parentNode) {
-            drawerNav.insertBefore(prefsItem, contactBtn);
-            drawerNav.insertBefore(logoutItem, contactBtn);
-          } else {
-            drawerNav.appendChild(prefsItem);
-            drawerNav.appendChild(logoutItem);
-          }
-
-          // Logout (inline en la lista)
           logoutItem.addEventListener("click", async (e) => {
             e.preventDefault();
             logoutItem.disabled = true;
@@ -247,13 +233,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
         if (elDesktop) paintLogin(elDesktop);
         if (elMobile)  paintLoginMobile(elMobile);
         cleanupDrawerInjected();
-        if (drawerNav) {
+        if (drawerNav && !elMobile) {
           const loginItem = document.createElement("a");
           loginItem.href = "/login.html";
           loginItem.className = "drawer-link";
           loginItem.textContent = "Login";
-          loginItem.setAttribute("data-auth-injected", "1");
-          drawerNav.appendChild(loginItem);
+          insertBeforeContactoOrEnd(loginItem);
         }
       }
     }
