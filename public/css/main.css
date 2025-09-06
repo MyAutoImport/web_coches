@@ -244,3 +244,46 @@ main .card .muted{color:var(--muted)}
   .filters .col-12{ grid-column:span 2 }
   .filters .actions{ grid-column:span 2 }
 }
+
+/* === STOCK: alinear campos en filas "rectas" === */
+/* Cada columna del grid actúa como una "celda" de igual altura */
+.filters form > div{
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;  /* input pegado abajo */
+  min-height: 88px;           /* altura de celda (ajusta a 84–92 si quieres afinar) */
+}
+
+/* Etiquetas consistentes para no alterar la altura de la celda */
+.filters label{
+  margin: 0 0 8px 0;
+  line-height: 1.1;
+  min-height: 20px;           /* garantiza espacio uniforme para label */
+}
+
+/* Inputs/selects: misma altura exacta */
+.filters input,
+.filters select{
+  height: 44px;
+  line-height: 44px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+/* Botonera alineada a la base de la fila */
+.filters .actions{
+  align-items: flex-end;
+  padding-bottom: 2px;        /* compensa el glow del botón "Aplicar" */
+}
+.filters .actions .btn{
+  height: 44px;
+  line-height: 44px;
+  padding: 0 18px;
+}
+
+/* En móvil no forzamos altura fija para evitar huecos grandes */
+@media (max-width: 900px){
+  .filters form > div{ min-height: unset; }
+}
+
