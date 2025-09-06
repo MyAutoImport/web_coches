@@ -20,6 +20,8 @@
   .row{display:flex;gap:8px;margin-top:14px}
   button{flex:1;background:var(--btn);border:0;border-radius:10px;padding:12px 14px;color:#fff;font-weight:600;cursor:pointer}
   button.secondary{background:var(--btn2)}
+  button:disabled{opacity:.65;cursor:wait}
+  .full{width:100%;flex:unset}
   .msg{margin-top:12px;font-size:14px;color:#a3a3a3;min-height:20px}
 </style>
 
@@ -31,46 +33,117 @@
 <script src="/api/public-config.js"></script>
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2?bundle";
+
+  // Config pública
   const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.error("Faltan claves de Supabase en __APP_CONFIG__");
+  }
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const form = document.querySelector("#f");
   const msg = document.querySelector("#msg");
+  const btnLogin  = document.querySelector("#login");
+  const btnSignup = document.querySelector("#signup");
+  const btnResend = document.querySelector("#resend");
   const toHome = () => location.href = "/";
 
-  // Si ya hay sesión → a Home
+  // Si ya hay sesión → Home
   sb.auth.getSession().then(({ data }) => { if (data?.session) toHome(); });
 
-  document.querySelector("#login").onclick = async () => {
-    msg.textContent = "Iniciando sesión…";
-    const email = form.email.value.trim(); const password = form.password.value;
-    const { error } = await sb.auth.signInWithPassword({ email, password });
-    if (error) { msg.textContent = "Error: " + error.message; return; }
-    msg.textContent = "OK. Redirigiendo…"; toHome();
+  // Util
+  const setStatus = (text) => { msg.textContent = text ?? ""; };
+
+  // LOGIN
+  btnLogin.onclick = async () => {
+    setStatus("Iniciando sesión…");
+    btnLogin.disabled = btnSignup.disabled = btnResend.disabled = true;
+
+    const email = form.email.value.trim();
+    const password = form.password.value;
+
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      // Si el correo no está confirmado, sugerimos reenviar
+      const t = (error.message || "").toLowerCase();
+      const looksUnconfirmed =
+        t.includes("confirm") || t.includes("not confirmed") || t.includes("email_not_confirmed");
+      setStatus("Error: " + error.message + (looksUnconfirmed ? " · Puedes reenviar la confirmación abajo." : ""));
+      if (looksUnconfirmed) btnResend.hidden = false;
+      btnLogin.disabled = btnSignup.disabled = btnResend.disabled = false;
+      return;
+    }
+    setStatus("OK. Redirigiendo…");
+    toHome();
   };
 
-  document.querySelector("#signup").onclick = async () => {
-    msg.textContent = "Creando cuenta…";
-    const email = form.email.value.trim(); const password = form.password.value;
+  // SIGNUP
+  btnSignup.onclick = async () => {
+    setStatus("Creando cuenta…");
+    btnLogin.disabled = btnSignup.disabled = btnResend.disabled = true;
+
+    const email = form.email.value.trim();
+    const password = form.password.value;
     const emailRedirectTo = `${location.origin}/auth-callback.html?from=client`;
-    const { error } = await sb.auth.signUp({ email, password, options:{ emailRedirectTo }});
-    msg.textContent = error ? ("Error: " + error.message) : "Cuenta creada. Revisa tu correo para confirmar.";
+
+    const { error } = await sb.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo }
+    });
+
+    setStatus(error ? ("Error: " + error.message) : "Cuenta creada. Revisa tu correo para confirmar.");
+    btnLogin.disabled = btnSignup.disabled = btnResend.disabled = false;
+    // mostramos el botón de reenvío por si el usuario lo necesita
+    btnResend.hidden = false;
+  };
+
+  // RESEND CONFIRMATION
+  btnResend.onclick = async () => {
+    const email = form.email.value.trim();
+    if (!email) { setStatus("Escribe tu email antes de reenviar."); return; }
+
+    setStatus("Reenviando confirmación…");
+    btnResend.disabled = true;
+
+    try {
+      const emailRedirectTo = `${location.origin}/auth-callback.html?from=client`;
+      const { error } = await sb.auth.resend({
+        type: "signup",
+        email,
+        options: { emailRedirectTo }
+      });
+      setStatus(error ? ("Error: " + error.message) : "Hecho. Revisa tu correo (también Spam).");
+    } catch {
+      setStatus("Error reenviando confirmación.");
+    } finally {
+      btnResend.disabled = false;
+    }
   };
 </script>
 
 <div class="wrap">
   <div class="card">
     <h1>Acceso (clientes)</h1>
-    <form id="f" onsubmit="return false;">
-      <label>Email</label>
-      <input type="email" name="email" placeholder="tú@correo.com" required>
-      <label>Contraseña</label>
-      <input type="password" name="password" placeholder="••••••••" required>
-      <div class="row">
-        <button id="login">Entrar</button>
+    <form id="f" onsubmit="return false;" autocomplete="on">
+      <label for="email">Email</label>
+      <input id="email" type="email" name="email" placeholder="tú@correo.com" required>
+
+      <label for="password">Contraseña</label>
+      <input id="password" type="password" name="password" placeholder="••••••••" required>
+
+      <div class="row" aria-label="Acciones de acceso">
+        <button id="login" type="button">Entrar</button>
         <button id="signup" class="secondary" type="button">Crear cuenta</button>
       </div>
-      <div class="msg" id="msg"></div>
+
+      <!-- Reenviar confirmación: a ancho completo -->
+      <div class="row">
+        <button id="resend" class="secondary full" type="button" hidden>Reenviar confirmación</button>
+      </div>
+
+      <div class="msg" id="msg" aria-live="polite"></div>
     </form>
   </div>
 </div>
