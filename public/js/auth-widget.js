@@ -8,9 +8,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
   const log = (...a) => console.debug("[auth-widget]", ...a);
 
   // 1) Espera DOM listo
-  const domReady = document.readyState === "loading"
-    ? new Promise(res => document.addEventListener("DOMContentLoaded", res, { once: true }))
-    : Promise.resolve();
+  const domReady =
+    document.readyState === "loading"
+      ? new Promise((res) =>
+          document.addEventListener("DOMContentLoaded", res, { once: true })
+        )
+      : Promise.resolve();
 
   // 2) CSS mínimo inline (por si falta en main.css)
   function ensureCSS() {
@@ -29,7 +32,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
     document.head.appendChild(style);
   }
 
-  // 3) Siempre deja un placeholder visible inmediatamente
+  // 3) Placeholder visible inmediatamente
   function paintLogin(el) {
     el.innerHTML = `<a class="btn" href="/cliente-login.html">Login</a>`;
   }
@@ -38,14 +41,18 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
     await domReady;
 
     const el = document.querySelector("#user-nav");
-    if (!el) { log("no existe #user-nav"); return; }
+    if (!el) {
+      log("no existe #user-nav");
+      return;
+    }
     ensureCSS();
     paintLogin(el); // placeholder inmediato
 
     // 4) Espera la config pública con reintentos
     let tries = 0;
-    while (!window.__APP_CONFIG__ && tries < 40) { // ~2s
-      await new Promise(r => setTimeout(r, 50));
+    while (!window.__APP_CONFIG__ && tries < 40) {
+      // ~2s
+      await new Promise((r) => setTimeout(r, 50));
       tries++;
     }
     const cfg = window.__APP_CONFIG__ || {};
@@ -62,21 +69,39 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
         if (error) throw error;
 
         const user = data?.user;
-        if (!user) { paintLogin(el); return; }
+        if (!user) {
+          paintLogin(el);
+          return;
+        }
 
-        const name = user.user_metadata?.name || (user.email || "").split("@")[0] || "Cuenta";
+        const name =
+          user.user_metadata?.name ||
+          (user.email || "").split("@")[0] ||
+          "Cuenta";
         const avatar = user.user_metadata?.avatar_url || "";
 
         el.innerHTML = `
           ${avatar ? `<img class="avatar" src="${avatar}" alt="avatar" referrerpolicy="no-referrer">` : ``}
           <a class="link" href="/mi-cuenta.html" aria-label="Preferencias"><span class="name">${name}</span></a>
           <span class="sep">·</span>
-          <button id="logout-btn" class="btn">Salir</button>
+          <button id="logout-btn" class="btn" type="button">Salir</button>
         `;
 
-        el.querySelector("#logout-btn")?.addEventListener("click", async () => {
-          try { await supabase.auth.signOut(); location.reload(); }
-          catch { alert("No se pudo cerrar la sesión."); }
+        // Logout con refresco inmediato y cache-busting (evita bfcache)
+        el.querySelector("#logout-btn")?.addEventListener("click", async (e) => {
+          e.preventDefault();
+          const btn = e.currentTarget;
+          btn.disabled = true;
+          btn.textContent = "Saliendo…";
+          try {
+            await supabase.auth.signOut();
+          } catch (err) {
+            console.error(err);
+          } finally {
+            const url = new URL(location.href);
+            url.searchParams.set("_", Date.now().toString());
+            location.replace(url.toString());
+          }
         });
       } catch (e) {
         log("render error:", e);
@@ -84,9 +109,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
       }
     }
 
-    // 5) Primer render + reintentos suaves (por si tarda la sesión del storage)
+    // 5) Primer render + dos reintentos (la sesión puede tardar en hidratar)
     await render();
-    // dos reintentos rápidos por si el storage tarda en hidratar
     setTimeout(render, 250);
     setTimeout(render, 1000);
 
