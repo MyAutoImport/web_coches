@@ -23,7 +23,7 @@
       if (err) {
         alert(decodeURIComponent(err));
         const from = q.get("from");
-        location.replace(from === "client" ? "/cliente-login.html" : "/login.html");
+        location.replace(from === "client" ? "/login.html" : "/leads-admin.html");
       }
     }
 
@@ -107,7 +107,7 @@
 
       if (!session) {
         // no hay sesión → a login correspondiente según 'from'
-        location.replace(from === "client" ? "/cliente-login.html" : "/login.html");
+        location.replace(from === "client" ? "/login.html" : "/leads-admin.html");
       } else {
         const dest = await getDestination(session, from);
         location.replace(dest);

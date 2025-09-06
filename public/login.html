@@ -1,70 +1,76 @@
 <!doctype html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Login — My Auto Import</title>
-  <link rel="icon" href="/favicon.ico">
-  <link rel="stylesheet" href="/css/main.css">
-  <script src="/api/public-config.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Acceso — Cliente</title>
+<link rel="icon" href="/favicon.ico">
+<style>
+  :root{ --nav:#111827; --nav-b:#1f2937; --btn:#6366f1; --btn2:#334155 }
+  body{background:#0f172a;color:#e5e7eb;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0}
+  /* Top bar con Inicio */
+  header{display:flex;justify-content:space-between;align-items:center;background:var(--nav);border-bottom:1px solid var(--nav-b);padding:12px 16px}
+  .brand{font-weight:800;letter-spacing:.2px}
+  .btn{background:var(--btn2);border:0;border-radius:999px;padding:8px 12px;color:#fff;font-weight:700;cursor:pointer;text-decoration:none}
+  .btn.primary{background:var(--btn)}
+  /* Tarjeta login */
+  .wrap{max-width:420px;margin:48px auto;padding:0 16px}
+  .card{background:#111827;border:1px solid #1f2937;border-radius:16px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  h1{margin:0 0 16px;font-size:24px}
+  label{display:block;font-size:14px;margin:10px 0 6px;color:#a3a3a3}
+  input{width:100%;background:#0b1220;border:1px solid #243042;border-radius:10px;padding:12px;color:#e5e7eb}
+  .row{display:flex;gap:8px;margin-top:14px}
+  button{flex:1;background:var(--btn);border:0;border-radius:10px;padding:12px 14px;color:#fff;font-weight:600;cursor:pointer}
+  button.secondary{background:var(--btn2)}
+  .msg{margin-top:12px;font-size:14px;color:#a3a3a3;min-height:20px}
+</style>
 
-  <script type="module">
-    /* === JS ORIGINAL SIN CAMBIOS === */
-    import { createClient } from "https://esm.sh/@supabase/supabase-js@2?bundle";
-    const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const form = document.querySelector("#auth-form");
-    const msg  = document.querySelector("#msg");
-    const toAdmin = () => location.href = "/admin.html";
-    supabase.auth.getSession().then(({ data }) => { if (data?.session) toAdmin(); });
-    document.querySelector("#login").addEventListener("click", async () => {
-      msg.textContent = "Iniciando sesión…";
-      const email = form.email.value.trim();
-      const password = form.password.value;
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) { msg.textContent = "Error: " + error.message; return; }
-      msg.textContent = "OK. Redirigiendo…"; toAdmin();
-    });
-    document.querySelector("#signup").addEventListener("click", async () => {
-      msg.textContent = "Creando cuenta…";
-      const email = form.email.value.trim();
-      const password = form.password.value;
-      const emailRedirectTo = `${location.origin}/auth-callback.html`;
-      const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo } });
-      msg.textContent = error ? ("Error: " + error.message) : "Cuenta creada. Revisa tu correo para confirmar.";
-    });
-    document.querySelector("#resend").addEventListener("click", async () => {
-      const email = form.email.value.trim();
-      if (!email) { msg.textContent = "Escribe tu email primero."; return; }
-      const { error } = await supabase.auth.resend({
-        type:"signup", email, options:{ emailRedirectTo:`${location.origin}/auth-callback.html` }
-      });
-      msg.textContent = error ? ("Error: " + error.message) : "Listo. Revisa tu correo.";
-    });
-  </script>
-</head>
-<body>
-  <div class="auth-wrap">
-    <div class="auth-card">
-      <h1 class="auth-title">Acceso</h1>
-      <form id="auth-form" onsubmit="return false;">
-        <label>Email</label>
-        <input class="auth-input" type="email" name="email" placeholder="tú@correo.com" required>
-        <label>Contraseña</label>
-        <input class="auth-input" type="password" name="password" placeholder="••••••••" required>
+<header>
+  <span class="brand">My Auto Import</span>
+  <a class="btn" href="/">Inicio</a>
+</header>
 
-        <div class="auth-row">
-          <button id="login">Entrar</button>
-          <button id="signup" class="btn secondary" type="button">Crear cuenta</button>
-        </div>
+<script src="/api/public-config.js"></script>
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2?bundle";
+  const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        <div style="margin-top:8px;text-align:center">
-          <button id="resend" class="btn secondary" type="button">Reenviar confirmación</button>
-        </div>
+  const form = document.querySelector("#f");
+  const msg = document.querySelector("#msg");
+  const toHome = () => location.href = "/";
 
-        <div class="auth-msg" id="msg"></div>
-      </form>
-    </div>
+  // Si ya hay sesión → a Home
+  sb.auth.getSession().then(({ data }) => { if (data?.session) toHome(); });
+
+  document.querySelector("#login").onclick = async () => {
+    msg.textContent = "Iniciando sesión…";
+    const email = form.email.value.trim(); const password = form.password.value;
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) { msg.textContent = "Error: " + error.message; return; }
+    msg.textContent = "OK. Redirigiendo…"; toHome();
+  };
+
+  document.querySelector("#signup").onclick = async () => {
+    msg.textContent = "Creando cuenta…";
+    const email = form.email.value.trim(); const password = form.password.value;
+    const emailRedirectTo = `${location.origin}/auth-callback.html?from=client`;
+    const { error } = await sb.auth.signUp({ email, password, options:{ emailRedirectTo }});
+    msg.textContent = error ? ("Error: " + error.message) : "Cuenta creada. Revisa tu correo para confirmar.";
+  };
+</script>
+
+<div class="wrap">
+  <div class="card">
+    <h1>Acceso (clientes)</h1>
+    <form id="f" onsubmit="return false;">
+      <label>Email</label>
+      <input type="email" name="email" placeholder="tú@correo.com" required>
+      <label>Contraseña</label>
+      <input type="password" name="password" placeholder="••••••••" required>
+      <div class="row">
+        <button id="login">Entrar</button>
+        <button id="signup" class="secondary" type="button">Crear cuenta</button>
+      </div>
+      <div class="msg" id="msg"></div>
+    </form>
   </div>
-</body>
-</html>
+</div>

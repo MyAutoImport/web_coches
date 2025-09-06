@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login — My Auto Import</title>
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="/api/public-config.js"></script>
+
+  <script type="module">
+    /* === JS ORIGINAL SIN CAMBIOS === */
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2?bundle";
+    const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const form = document.querySelector("#auth-form");
+    const msg  = document.querySelector("#msg");
+    const toAdmin = () => location.href = "/admin.html";
+    supabase.auth.getSession().then(({ data }) => { if (data?.session) toAdmin(); });
+    document.querySelector("#login").addEventListener("click", async () => {
+      msg.textContent = "Iniciando sesión…";
+      const email = form.email.value.trim();
+      const password = form.password.value;
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) { msg.textContent = "Error: " + error.message; return; }
+      msg.textContent = "OK. Redirigiendo…"; toAdmin();
+    });
+    document.querySelector("#signup").addEventListener("click", async () => {
+      msg.textContent = "Creando cuenta…";
+      const email = form.email.value.trim();
+      const password = form.password.value;
+      const emailRedirectTo = `${location.origin}/auth-callback.html`;
+      const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo } });
+      msg.textContent = error ? ("Error: " + error.message) : "Cuenta creada. Revisa tu correo para confirmar.";
+    });
+    document.querySelector("#resend").addEventListener("click", async () => {
+      const email = form.email.value.trim();
+      if (!email) { msg.textContent = "Escribe tu email primero."; return; }
+      const { error } = await supabase.auth.resend({
+        type:"signup", email, options:{ emailRedirectTo:`${location.origin}/auth-callback.html` }
+      });
+      msg.textContent = error ? ("Error: " + error.message) : "Listo. Revisa tu correo.";
+    });
+  </script>
+</head>
+<body>
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h1 class="auth-title">Acceso</h1>
+      <form id="auth-form" onsubmit="return false;">
+        <label>Email</label>
+        <input class="auth-input" type="email" name="email" placeholder="tú@correo.com" required>
+        <label>Contraseña</label>
+        <input class="auth-input" type="password" name="password" placeholder="••••••••" required>
+
+        <div class="auth-row">
+          <button id="login">Entrar</button>
+          <button id="signup" class="btn secondary" type="button">Crear cuenta</button>
+        </div>
+
+        <div style="margin-top:8px;text-align:center">
+          <button id="resend" class="btn secondary" type="button">Reenviar confirmación</button>
+        </div>
+
+        <div class="auth-msg" id="msg"></div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
