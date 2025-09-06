@@ -3,7 +3,6 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-
   <title>Stock de vehículos — My Auto Import</title>
   <meta name="description" content="Explora nuestro catálogo de coches disponibles: filtra por marca, combustible, año, precio y ordena por los criterios que prefieras.">
   <meta name="robots" content="index,follow">
@@ -32,17 +31,20 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  
+
+  <!-- Config -->
   <script src="/api/public-config.js"></script>
 
-  <!-- Dinamizar canonical/OG con SITE_ORIGIN -->
+  <!-- CSS externo -->
+  <link rel="stylesheet" href="/css/main.css">
+
+  <!-- Canonical/OG dinámico -->
   <script>
     (function () {
       const cfg = window.__APP_CONFIG__ || {};
       const site = (cfg.SITE_ORIGIN || location.origin).replace(/\/$/, "");
       document.getElementById('canonical')?.setAttribute('href', `${site}/stock.html`);
       document.getElementById('og-url')?.setAttribute('content', `${site}/stock.html`);
-
       const ogImg = document.getElementById('og-image');
       if (ogImg) ogImg.setAttribute('content', `${site}/og-image.jpg`);
       const twImg = document.getElementById('twitter-image') || document.querySelector('meta[name="twitter:image"]');
@@ -50,112 +52,15 @@
     })();
   </script>
 
-  <style>
-    :root{
-      --primary:#6366F1; --primary-dark:#4F46E5;
-      --bg:#111827; --text:#F9FAFB; --muted:#9CA3AF;
-      --card:#1F2937; --border:#374151; --shadow:0 8px 24px rgba(0,0,0,.35);
-      --nav-h:64px; --nav-bg:#0f172a; --nav-border:rgba(255,255,255,.06);
-    }
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
-    a{color:inherit;text-decoration:none}
-
-    /* Header + Drawer */
-    .site-header{position:sticky;top:0;z-index:50;background:var(--nav-bg);border-bottom:1px solid var(--nav-border);backdrop-filter:blur(8px) saturate(120%)}
-    .nav-wrap{max-width:1200px;margin:0 auto;padding:12px 16px;height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;gap:12px}
-    .brand{color:#fff;font-weight:800;letter-spacing:.2px;font-size:clamp(1.05rem,2vw,1.2rem)}
-    .nav-desktop{display:none;gap:16px;align-items:center}
-    .nav-desktop a{color:rgba(249,250,251,.92);font-weight:600;padding:8px 10px;border-radius:10px;transition:background .2s,color .2s}
-    .nav-desktop a:hover{color:#fff;background:rgba(255,255,255,.06)}
-    .nav-toggle{width:44px;height:44px;border-radius:12px;border:1px solid var(--nav-border);background:transparent;cursor:pointer;display:grid;place-items:center;gap:4px;transition:background .2s,border .2s}
-    .nav-toggle:hover{background:rgba(255,255,255,.04)}
-    .nav-toggle .bar{width:20px;height:2px;background:#e5e7eb;display:block;border-radius:2px;transition:transform .25s ease, opacity .25s ease}
-    .nav-toggle[aria-expanded="true"] .bar:nth-child(1){transform:translateY(6px) rotate(45deg)}
-    .nav-toggle[aria-expanded="true"] .bar:nth-child(2){opacity:0}
-    .nav-toggle[aria-expanded="true"] .bar:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
-    @media (min-width:900px){.nav-toggle{display:none}.nav-desktop{display:flex}}
-
-    .drawer{position:fixed;inset:0;display:grid;grid-template-columns:1fr;pointer-events:none;z-index:60}
-    .drawer-backdrop{display:none}
-    .drawer-inner{
-      align-self:start;justify-self:end;
-      width:clamp(320px,78vw,560px);
-      height:100vh;height:100svh;height:100dvh;
-      background:#0b1220;border-left:1px solid var(--nav-border);
-      box-shadow:-24px 0 48px rgba(0,0,0,.6);
-      transform:translateX(100%);transition:transform .28s ease;
-      display:flex;flex-direction:column;overflow:auto;-webkit-overflow-scrolling:touch;
-      padding:18px;padding-top:calc(16px + env(safe-area-inset-top,0px));
-    }
-    @media (min-width:600px) and (max-width:899px){.drawer-inner{width:min(88vw,560px)}}
-    .drawer.open{pointer-events:auto}
-    .drawer.open .drawer-inner{transform:translateX(0)}
-    body.nav-open{overflow:hidden;touch-action:none;overscroll-behavior:contain}
-    .drawer-close{width:40px;height:40px;border-radius:12px;border:1px solid var(--nav-border);background:#111827;color:#e5e7eb;cursor:pointer;display:flex;align-items:center;justify-content:center}
-
-    /* ⛔ OCULTAR drawer móvil en escritorio */
-    @media (min-width:900px){
-      #mobile-drawer{display:none!important}
-    }
-
-    /* Layout */
-    main{max-width:1200px;margin:0 auto;padding:28px 18px}
-    h1{font-size:clamp(1.6rem,2.4vw,2.25rem);margin:8px 0 18px;font-weight:800;letter-spacing:.2px;color:#fff}
-
-    /* Filtros */
-    .filters{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:16px;margin-bottom:16px}
-    .filters form{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
-    .filters label{font-weight:600;color:#E5E7EB;font-size:.95rem}
-    .filters input,.filters select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#0B1220;color:#fff}
-    .filters .col-3{grid-column:span 3} .col-2{grid-column:span 2} .col-4{grid-column:span 4}
-    .filters .col-6{grid-column:span 6} .col-12{grid-column:span 12}
-    .filters .actions{display:flex;gap:10px;align-items:end}
-    @media (max-width:900px){
-      .filters form{grid-template-columns:1fr 1fr}
-      .filters .col-3,.col-2,.col-4,.col-6,.col-12{grid-column:span 2}
-      .filters .actions{grid-column:span 2}
-    }
-
-    /* Cards */
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:14px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:0 4px 16px rgba(0,0,0,.35);transition:.2s}
-    .card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.45)}
-    .card img{width:100%;border-radius:12px;margin-bottom:10px;display:block;aspect-ratio:16/9;object-fit:cover;background:#0b0b0b}
-    .card .title{color:#fff;font-weight:700}
-    .card .muted{color:var(--muted)}
-
-    /* Botones */
-    .btn{display:inline-block;padding:10px 18px;border-radius:999px;font-weight:700}
-    .btn.primary{background:var(--primary);color:#fff;box-shadow:0 6px 18px rgba(99,102,241,.25)}
-    .btn.primary:hover{background:var(--primary-dark)}
-
-    /* Paginación */
-    .pager{display:flex;gap:8px;justify-content:center;align-items:center;margin:18px 0 6px}
-    .pager button{padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:#0B1220;color:#fff;cursor:pointer}
-    .pager button[disabled]{opacity:.45;cursor:not-allowed}
-
-    /* Utilidades */
-    .srch{display:flex;gap:8px}
-  </style>
-
   <script src="/js/utils.js" defer></script>
-  
+
   <!-- Cloudflare Web Analytics -->
-  <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "6bacc6c3cd2f482793c643c5fe8df0b7"}'></script><!-- End Cloudflare Web Analytics -->
-  
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"6bacc6c3cd2f482793c643c5fe8df0b7"}'></script>
+
   <link rel="manifest" href="/site.webmanifest" crossorigin="anonymous" />
-
-  <!-- Favicon moderno (SVG) -->
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-
-  <!-- Fallback clásico (.ico); quítalo si no vas a incluir el archivo -->
   <link rel="alternate icon" href="/favicon.ico" sizes="any" />
-
-  <!-- Icono Apple / PWA -->
   <link rel="apple-touch-icon" href="/img/icon-192.png" />
-
   <meta name="theme-color" content="#0b1220" />
 </head>
 <body>
@@ -273,12 +178,12 @@
     const nextBtn = $("#next");
     const pageInfo = $("#pageinfo");
 
-    const PAGE = 12; // items por página
+    const PAGE = 12;
     const FALLBACK = "/img/fallback_car.jpg";
     let currentPage = 1;
     let total = 0;
 
-    function sanitizeHTML(s){ return (s ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    const sanitizeHTML = s => (s ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
     function readParams(){
       const p = new URLSearchParams(location.search);
@@ -326,7 +231,6 @@
         </article>`;
     }
 
-    // Consulta SOLO a la tabla 'cars'
     async function fetchFromTable(params){
       let q = supabase.from("cars")
         .select("id, marca, modelo, anio, km, combustible, caja, imagenes, precio_objetivo, created_at, estado_publicacion", { count: "exact" })
@@ -356,8 +260,7 @@
 
       results.innerHTML = `<p style="color:var(--muted)">Cargando resultados…</p>`;
 
-      const resp = await fetchFromTable(params);
-      const { data, error, count } = resp;
+      const { data, error, count } = await fetchFromTable(params);
 
       if(error){
         console.error(error);
@@ -403,14 +306,13 @@
     // Inicial
     fetchData();
 
-    /* ====== Drawer JS ====== */
+    /* Drawer sólo móvil */
     (() => {
       const toggleBtn = document.getElementById('nav-toggle');
       const drawer    = document.getElementById('mobile-drawer');
       const closeBtn  = drawer?.querySelector('.drawer-close');
       if (!toggleBtn || !drawer) return;
 
-      // 🚫 Si estamos en escritorio, no montar el drawer
       const MQ_DESKTOP = window.matchMedia('(min-width: 900px)');
       if (MQ_DESKTOP.matches) return;
 
@@ -447,20 +349,19 @@
         }
       });
 
-      // Si se redimensiona a escritorio, cerrar y limpiar estado
-      MQ_DESKTOP.addEventListener('change', e => {
-        if (e.matches) {
+      MQ_DESKTOP.addEventListener('change', e=>{
+        if(e.matches){
           drawer.classList.remove('open');
           document.body.classList.remove('nav-open');
           toggleBtn.setAttribute('aria-expanded','false');
         }
       });
 
-      const resetDrawerState = () => { drawer.classList.remove('open'); document.body.classList.remove('nav-open'); toggleBtn.setAttribute('aria-expanded','false'); };
-      window.addEventListener('pageshow', resetDrawerState);
-      window.addEventListener('pagehide', resetDrawerState);
-      window.addEventListener('beforeunload', resetDrawerState);
-      document.addEventListener('visibilitychange', () => { if (document.hidden) resetDrawerState(); });
+      const reset = () => { drawer.classList.remove('open'); document.body.classList.remove('nav-open'); toggleBtn.setAttribute('aria-expanded','false'); };
+      window.addEventListener('pageshow', reset);
+      window.addEventListener('pagehide', reset);
+      window.addEventListener('beforeunload', reset);
+      document.addEventListener('visibilitychange', ()=>{ if(document.hidden) reset(); });
     })();
   </script>
 </body>
