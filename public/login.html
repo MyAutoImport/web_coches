@@ -5,35 +5,18 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Login — My Auto Import</title>
   <link rel="icon" href="/favicon.ico">
-  <style>
-    body{background:#0f172a;color:#e5e7eb;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0}
-    .wrap{max-width:420px;margin:64px auto;padding:0 16px}
-    .card{background:#111827;border:1px solid #1f2937;border-radius:16px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
-    h1{margin:0 0 16px;font-size:24px}
-    label{display:block;font-size:14px;margin:10px 0 6px;color:#a3a3a3}
-    input{width:100%;background:#0b1220;border:1px solid #243042;border-radius:10px;padding:12px;color:#e5e7eb}
-    .row{display:flex;gap:8px;margin-top:14px}
-    button{flex:1;background:#6366f1;border:0;border-radius:10px;padding:12px 14px;color:#fff;font-weight:600;cursor:pointer}
-    button.secondary{background:#334155}
-    .msg{margin-top:12px;font-size:14px;color:#a3a3a3;min-height:20px}
-    a{color:#93c5fd;text-decoration:none}
-  </style>
+  <link rel="stylesheet" href="/css/main.css">
   <script src="/api/public-config.js"></script>
-  <script type="module">
-    import { createClient } from "https://esm.sh/@supabase/supabase-js@2?bundle";
 
+  <script type="module">
+    /* === JS ORIGINAL SIN CAMBIOS === */
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2?bundle";
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
     const form = document.querySelector("#auth-form");
     const msg  = document.querySelector("#msg");
     const toAdmin = () => location.href = "/admin.html";
-
-    // Si ya hay sesión, entra directo
-    supabase.auth.getSession().then(({ data }) => {
-      if (data?.session) toAdmin();
-    });
-
+    supabase.auth.getSession().then(({ data }) => { if (data?.session) toAdmin(); });
     document.querySelector("#login").addEventListener("click", async () => {
       msg.textContent = "Iniciando sesión…";
       const email = form.email.value.trim();
@@ -42,60 +25,44 @@
       if (error) { msg.textContent = "Error: " + error.message; return; }
       msg.textContent = "OK. Redirigiendo…"; toAdmin();
     });
-
     document.querySelector("#signup").addEventListener("click", async () => {
       msg.textContent = "Creando cuenta…";
       const email = form.email.value.trim();
       const password = form.password.value;
-
-      // 👇 Forzamos la URL de retorno del email de confirmación
       const emailRedirectTo = `${location.origin}/auth-callback.html`;
-	  console.log('signup redirect →', emailRedirectTo);
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo }
-      });
-
-      if (error) { msg.textContent = "Error: " + error.message; return; }
-      msg.textContent = "Cuenta creada. Revisa tu correo para confirmar.";
+      const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo } });
+      msg.textContent = error ? ("Error: " + error.message) : "Cuenta creada. Revisa tu correo para confirmar.";
     });
-	
-	// dentro del <script type="module"> de login.html
-	document.querySelector("#resend").addEventListener("click", async () => {
-		const email = form.email.value.trim();
-		if (!email) { msg.textContent = "Escribe tu email primero."; return; }
-		const { error } = await supabase.auth.resend({
-		type: "signup",
-		email,
-		options: { emailRedirectTo: `${location.origin}/auth-callback.html` }
-	});
-	msg.textContent = error ? ("Error: " + error.message) : "Listo. Revisa tu correo.";
-	});
-
+    document.querySelector("#resend").addEventListener("click", async () => {
+      const email = form.email.value.trim();
+      if (!email) { msg.textContent = "Escribe tu email primero."; return; }
+      const { error } = await supabase.auth.resend({
+        type:"signup", email, options:{ emailRedirectTo:`${location.origin}/auth-callback.html` }
+      });
+      msg.textContent = error ? ("Error: " + error.message) : "Listo. Revisa tu correo.";
+    });
   </script>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h1>Acceso</h1>
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h1 class="auth-title">Acceso</h1>
       <form id="auth-form" onsubmit="return false;">
         <label>Email</label>
-        <input type="email" name="email" placeholder="tú@correo.com" required>
+        <input class="auth-input" type="email" name="email" placeholder="tú@correo.com" required>
         <label>Contraseña</label>
-        <input type="password" name="password" placeholder="••••••••" required>
-        <div class="row">
+        <input class="auth-input" type="password" name="password" placeholder="••••••••" required>
+
+        <div class="auth-row">
           <button id="login">Entrar</button>
-          <button id="signup" class="secondary" type="button">Crear cuenta</button>
+          <button id="signup" class="btn secondary" type="button">Crear cuenta</button>
         </div>
-		
-		<!-- debajo de la fila de botones -->
-		<div style="margin-top:8px;text-align:center">
-		<button id="resend" class="secondary" type="button">Reenviar confirmación</button>
-		</div>
-        
-		<div class="msg" id="msg"></div>
+
+        <div style="margin-top:8px;text-align:center">
+          <button id="resend" class="btn secondary" type="button">Reenviar confirmación</button>
+        </div>
+
+        <div class="auth-msg" id="msg"></div>
       </form>
     </div>
   </div>
