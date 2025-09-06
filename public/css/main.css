@@ -294,3 +294,43 @@ main .card .muted{color:var(--muted)}
 .sticky-cta .cta-btn{background:var(--primary);color:#fff;padding:12px 18px;border-radius:999px;font-weight:700;text-decoration:none;display:inline-block}
 @media (max-width:900px){ .sticky-cta{display:flex} body{padding-bottom:72px} }
 .sticky-cta.hidden{transform:translateY(110%);transition:transform .25s ease}
+
+/* ===== User nav (login/global session) ===== */
+.user-nav{ position:relative; display:flex; align-items:center; gap:10px }
+.user-nav .login-btn{
+  background:#0B1220; border:1px solid var(--nav-border);
+  color:#fff; padding:8px 12px; border-radius:999px; font-weight:700;
+}
+.user-nav .login-btn:hover{ background:rgba(255,255,255,.06) }
+
+.avatar-btn{
+  width:36px; height:36px; border-radius:999px; border:1px solid var(--nav-border);
+  background:#0B1220; color:#fff; display:flex; align-items:center; justify-content:center;
+  font-weight:800; cursor:pointer;
+}
+.avatar-btn:hover{ background:rgba(255,255,255,.06) }
+
+.user-menu{
+  position:absolute; right:0; top:calc(100% + 8px);
+  min-width:180px; background:#0b1220; border:1px solid var(--nav-border);
+  border-radius:14px; box-shadow:0 12px 32px rgba(0,0,0,.45); padding:6px; display:none; z-index:70;
+}
+.user-menu.open{ display:block }
+.user-menu a, .user-menu button{
+  width:100%; text-align:left; padding:10px 12px; border-radius:10px;
+  color:var(--text); background:transparent; border:0; font-weight:600; cursor:pointer;
+}
+.user-menu a:hover, .user-menu button:hover{ background:rgba(255,255,255,.06) }
+
+/* Drawer (móvil) bloque de usuario */
+.drawer-user{ margin-top:8px; padding:8px; border-top:1px solid var(--nav-border) }
+.drawer-user .login-btn{ width:100%; text-align:center }
+.drawer-user .row{ display:flex; align-items:center; justify-content:space-between; gap:8px }
+.drawer-user .row .avatar-btn{ width:34px; height:34px }
+.drawer-user .links{ display:flex; flex-direction:column; gap:6px; margin-top:8px }
+.drawer-user .links a, .drawer-user .links button{
+  padding:10px 12px; border-radius:10px; color:var(--text); background:#0B1220;
+  border:1px solid var(--nav-border); text-align:center; font-weight:700;
+}
+.drawer-user .links a:hover, .drawer-user .links button:hover{ background:rgba(255,255,255,.06) }
+
