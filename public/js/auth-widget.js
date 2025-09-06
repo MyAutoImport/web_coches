@@ -1,68 +1,88 @@
 // public/js/auth-widget.js
-// Requiere que /api/public-config.js haya definido window.__APP_CONFIG__ con SUPABASE_URL y SUPABASE_ANON_KEY
+// Pinta login/usuario en #user-nav usando Supabase Auth.
+// Requiere que /api/public-config.js defina window.__APP_CONFIG__.
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 (function () {
-  const cfg = window.__APP_CONFIG__ || {};
-  const supabase = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+  const log = (...a) => console.debug("[auth-widget]", ...a);
 
-  const $  = s => document.querySelector(s);
-  const el = $('#user-nav');        // <- placeholder en el header
-  if (!el) return;
+  // Espera al DOM si hace falta
+  const domReady = document.readyState === "loading"
+    ? new Promise(res => document.addEventListener("DOMContentLoaded", res, { once: true }))
+    : Promise.resolve();
 
-  // CSS utilitario para avatar/btn (por si falta en main.css)
   const ensureCSS = () => {
-    if (document.getElementById('user-nav-inline-css')) return;
-    const style = document.createElement('style');
-    style.id = 'user-nav-inline-css';
+    if (document.getElementById("user-nav-inline-css")) return;
+    const style = document.createElement("style");
+    style.id = "user-nav-inline-css";
     style.textContent = `
       .user-nav{display:flex;align-items:center;gap:10px;margin-left:6px}
-      .user-nav .btn{padding:8px 12px;border-radius:999px;font-weight:600;background:#0B1220;border:1px solid var(--border);color:#fff}
+      .user-nav .btn{padding:8px 12px;border-radius:999px;font-weight:600;background:#0B1220;border:1px solid var(--border);color:#fff;white-space:nowrap}
       .user-nav .btn.primary{background:var(--primary);border-color:transparent;color:#fff}
       .user-nav .avatar{width:28px;height:28px;border-radius:999px;object-fit:cover;border:1px solid var(--border);background:#111}
       .user-nav .name{color:#E5E7EB;font-weight:600;font-size:.95rem}
-      .user-nav .link{color:rgba(249,250,251,.82);font-weight:600}
+      .user-nav .link{color:rgba(249,250,251,.82);font-weight:600;white-space:nowrap}
       .user-nav .sep{opacity:.5}
     `;
     document.head.appendChild(style);
   };
 
-  const render = async () => {
+  async function init() {
+    await domReady; // 🔑 asegura que #user-nav exista
+
+    const el = document.querySelector("#user-nav");
+    if (!el) { log("no existe #user-nav en esta página"); return; }
+
     ensureCSS();
 
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      el.innerHTML = `
-        <a class="btn" href="/cliente-login.html">Login</a>
-      `;
+    // Espera a que esté la config (si el navegador cachea scripts, este await evita carreras)
+    let tries = 0;
+    while (!window.__APP_CONFIG__ && tries < 20) {
+      await new Promise(r => setTimeout(r, 50));
+      tries++;
+    }
+    const cfg = window.__APP_CONFIG__ || {};
+    if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY) {
+      log("falta config pública; muestro botón simple");
+      el.innerHTML = `<a class="btn" href="/cliente-login.html">Login</a>`;
       return;
     }
 
-    const name = user.user_metadata?.name || user.email?.split('@')[0] || 'Cuenta';
-    const avatar = user.user_metadata?.avatar_url || '';
+    const supabase = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
 
-    el.innerHTML = `
-      ${avatar ? `<img class="avatar" src="${avatar}" alt="avatar" referrerpolicy="no-referrer">` : ``}
-      <a class="link" href="/mi-cuenta.html" aria-label="Preferencias"><span class="name">${name}</span></a>
-      <span class="sep">·</span>
-      <button id="logout-btn" class="btn">Salir</button>
-    `;
-
-    const btn = $('#logout-btn');
-    btn?.addEventListener('click', async () => {
+    const render = async () => {
       try {
-        await supabase.auth.signOut();
-        location.reload();
-      } catch {
-        alert('No se pudo cerrar la sesión.');
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+          el.innerHTML = `<a class="btn" href="/cliente-login.html">Login</a>`;
+          return;
+        }
+
+        const name = user.user_metadata?.name || user.email?.split("@")[0] || "Cuenta";
+        const avatar = user.user_metadata?.avatar_url || "";
+
+        el.innerHTML = `
+          ${avatar ? `<img class="avatar" src="${avatar}" alt="avatar" referrerpolicy="no-referrer">` : ``}
+          <a class="link" href="/mi-cuenta.html" aria-label="Preferencias"><span class="name">${name}</span></a>
+          <span class="sep">·</span>
+          <button id="logout-btn" class="btn">Salir</button>
+        `;
+
+        el.querySelector("#logout-btn")?.addEventListener("click", async () => {
+          try { await supabase.auth.signOut(); location.reload(); }
+          catch { alert("No se pudo cerrar la sesión."); }
+        });
+      } catch (e) {
+        log("error render:", e);
+        el.innerHTML = `<a class="btn" href="/cliente-login.html">Login</a>`;
       }
-    });
-  };
+    };
 
-  // Re-render al cambiar el estado de auth
-  supabase.auth.onAuthStateChange(() => render());
+    supabase.auth.onAuthStateChange(() => render());
+    render();
+  }
 
-  // Primer pintado
-  render();
+  init();
 })();

@@ -30,32 +30,35 @@
     // Helpers
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
+    // Destino final según el origen y rol
     async function getDestination(session, fromParam) {
-      // si viene marcado desde el enlace
-      if (fromParam === "client") return "/mi-cuenta.html";
+      // Login/registro desde el flujo de cliente -> HOME
+      if (fromParam === "client") return "/";
+
+      // Flujo marcado como admin: comprobamos el perfil
       if (fromParam === "admin") {
-        // si dice admin, confirmamos con profiles
         try {
           const { data: prof } = await sb
             .from("profiles")
             .select("is_admin")
             .eq("id", session.user.id)
             .single();
-          return prof?.is_admin ? "/admin.html" : "/mi-cuenta.html";
+          return prof?.is_admin ? "/admin.html" : "/";
         } catch {
-          return "/mi-cuenta.html";
+          return "/";
         }
       }
-      // sin from → decidimos por is_admin
+
+      // Sin 'from': por defecto HOME; admins siguen a /admin.html
       try {
         const { data: prof } = await sb
           .from("profiles")
           .select("is_admin")
           .eq("id", session.user.id)
           .single();
-        return prof?.is_admin ? "/admin.html" : "/mi-cuenta.html";
+        return prof?.is_admin ? "/admin.html" : "/";
       } catch {
-        return "/mi-cuenta.html";
+        return "/";
       }
     }
 
@@ -79,7 +82,7 @@
         try {
           const { data, error } = await sb.auth.verifyOtp({ email, token, type });
           if (error) { msg.textContent = "Error: " + error.message; return; }
-          // sesión debería existir ahora; pequeña espera por si tarda en hidratar
+          // Espera breve por si la sesión tarda en hidratarse
           let session = null;
           for (let i=0;i<6;i++){ const r = await sb.auth.getSession(); session = r.data.session; if (session) break; await sleep(250); }
           if (!session) { msg.textContent = "No se pudo obtener la sesión. Vuelve a iniciar sesión."; return; }
@@ -90,8 +93,7 @@
         }
       };
     } else {
-      // 2) Flujo estándar (enlace de verificación/magic link con hash)
-      // Supabase suele hidratar la sesión leyendo el hash. Damos un pequeño margen.
+      // 2) Flujo estándar (enlace con hash)
       const from = q.get("from"); // 'client' | 'admin' | null
 
       box.textContent = "Verificando sesión…";

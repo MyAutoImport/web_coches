@@ -16,6 +16,8 @@
   .msg{margin-top:12px;font-size:14px;color:#a3a3a3;min-height:20px}
 </style>
 <script src="/api/public-config.js"></script>
+
+<script src="/api/public-config.js"></script>
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2?bundle";
   const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
@@ -23,27 +25,29 @@
 
   const form = document.querySelector("#f");
   const msg = document.querySelector("#msg");
-  const toPrefs = () => location.href = "/mi-cuenta.html";
+  const goHome = () => location.replace("/");   // <- destino: HOME
 
-  // Si ya hay sesión → a preferencias
-  sb.auth.getSession().then(({ data }) => { if (data?.session) toPrefs(); });
+  // Si ya hay sesión → HOME
+  sb.auth.getSession().then(({ data }) => { if (data?.session) goHome(); });
 
   document.querySelector("#login").onclick = async () => {
     msg.textContent = "Iniciando sesión…";
     const email = form.email.value.trim(); const password = form.password.value;
     const { error } = await sb.auth.signInWithPassword({ email, password });
     if (error) { msg.textContent = "Error: " + error.message; return; }
-    msg.textContent = "OK. Redirigiendo…"; toPrefs();
+    msg.textContent = "OK. Redirigiendo…"; goHome(); // <- HOME
   };
 
   document.querySelector("#signup").onclick = async () => {
     msg.textContent = "Creando cuenta…";
     const email = form.email.value.trim(); const password = form.password.value;
+    // marcamos 'from=client' para que el callback también vuelva a HOME
     const emailRedirectTo = `${location.origin}/auth-callback.html?from=client`;
     const { error } = await sb.auth.signUp({ email, password, options:{ emailRedirectTo }});
     msg.textContent = error ? ("Error: " + error.message) : "Cuenta creada. Revisa tu correo para confirmar.";
   };
 </script>
+
 
 <div class="wrap">
   <div class="card">
