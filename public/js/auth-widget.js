@@ -1,13 +1,11 @@
-// public/js/auth-widget.js
-// Pinta login/usuario en #user-nav usando Supabase Auth.
-// Requiere que /api/public-config.js defina window.__APP_CONFIG__.
-
+<!-- /public/js/auth-widget.js -->
+<script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 (function () {
   const log = (...a) => console.debug("[auth-widget]", ...a);
 
-  // 1) Espera DOM listo
+  // Espera DOM listo
   const domReady =
     document.readyState === "loading"
       ? new Promise((res) =>
@@ -15,7 +13,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
         )
       : Promise.resolve();
 
-  // 2) CSS mínimo inline (por si falta en main.css)
+  // CSS mínimo inline (por si falta en main.css)
   function ensureCSS() {
     if (document.getElementById("user-nav-inline-css")) return;
     const style = document.createElement("style");
@@ -28,11 +26,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
       .user-nav .name{color:#E5E7EB;font-weight:600;font-size:.95rem}
       .user-nav .link{color:rgba(249,250,251,.9);font-weight:600;white-space:nowrap}
       .user-nav .sep{opacity:.5}
+      .user-nav .btn[disabled]{opacity:.6;cursor:wait}
     `;
     document.head.appendChild(style);
   }
 
-  // 3) Placeholder visible inmediatamente
+  // Placeholder por defecto
   function paintLogin(el) {
     el.innerHTML = `<a class="btn" href="/cliente-login.html">Login</a>`;
   }
@@ -41,18 +40,14 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
     await domReady;
 
     const el = document.querySelector("#user-nav");
-    if (!el) {
-      log("no existe #user-nav");
-      return;
-    }
+    if (!el) { log("no existe #user-nav"); return; }
     ensureCSS();
     paintLogin(el); // placeholder inmediato
 
-    // 4) Espera la config pública con reintentos
+    // Espera la config pública (evita condiciones de carrera)
     let tries = 0;
-    while (!window.__APP_CONFIG__ && tries < 40) {
-      // ~2s
-      await new Promise((r) => setTimeout(r, 50));
+    while (!window.__APP_CONFIG__ && tries < 40) { // ~2s
+      await new Promise(r => setTimeout(r, 50));
       tries++;
     }
     const cfg = window.__APP_CONFIG__ || {};
@@ -69,15 +64,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
         if (error) throw error;
 
         const user = data?.user;
-        if (!user) {
-          paintLogin(el);
-          return;
-        }
+        if (!user) { paintLogin(el); return; }
 
-        const name =
-          user.user_metadata?.name ||
-          (user.email || "").split("@")[0] ||
-          "Cuenta";
+        const name = user.user_metadata?.name || (user.email || "").split("@")[0] || "Cuenta";
         const avatar = user.user_metadata?.avatar_url || "";
 
         el.innerHTML = `
@@ -87,20 +76,35 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
           <button id="logout-btn" class="btn" type="button">Salir</button>
         `;
 
-        // Logout con refresco inmediato y cache-busting (evita bfcache)
+        // --- Logout robusto ---
         el.querySelector("#logout-btn")?.addEventListener("click", async (e) => {
           e.preventDefault();
           const btn = e.currentTarget;
           btn.disabled = true;
           btn.textContent = "Saliendo…";
-          try {
-            await supabase.auth.signOut();
-          } catch (err) {
-            console.error(err);
-          } finally {
+
+          // Función de recarga dura con cache-busting (evita bfcache)
+          const hardReload = () => {
             const url = new URL(location.href);
             url.searchParams.set("_", Date.now().toString());
             location.replace(url.toString());
+          };
+
+          // Fallback por si el proveedor tarda
+          const fallbackTimer = setTimeout(hardReload, 1500);
+
+          // Si detectamos el evento de sign-out, recargamos en el acto
+          const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+            if (event === "SIGNED_OUT") hardReload();
+          });
+
+          try {
+            // Limpia primero localmente (instantáneo) y luego intenta invalidar global
+            await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+            await supabase.auth.signOut({ scope: "global" }).catch(() => {});
+          } finally {
+            // Si algo queda colgado, el fallback se encargará
+            setTimeout(() => sub.subscription?.unsubscribe?.(), 0);
           }
         });
       } catch (e) {
@@ -109,14 +113,15 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
       }
     }
 
-    // 5) Primer render + dos reintentos (la sesión puede tardar en hidratar)
+    // Primer render + dos reintentos por si la sesión tarda en hidratar
     await render();
     setTimeout(render, 250);
     setTimeout(render, 1000);
 
-    // 6) Re-render cuando cambie el estado
+    // Re-render al cambiar el estado
     supabase.auth.onAuthStateChange(() => render());
   }
 
   init();
 })();
+</script>
