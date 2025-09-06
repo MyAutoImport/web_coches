@@ -4,10 +4,13 @@
 <title>Mi cuenta — Preferencias</title>
 <link rel="icon" href="/favicon.ico">
 <style>
+  :root{ --nav:#111827; --nav-b:#1f2937; --btn:#6366f1; --btn2:#334155 }
   body{background:#0f172a;color:#e5e7eb;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0}
-  header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:#111827;border-bottom:1px solid #1f2937}
+  header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--nav);border-bottom:1px solid var(--nav-b)}
   header h1{font-size:18px;margin:0}
-  header button{background:#334155;border:0;border-radius:10px;padding:8px 12px;color:#fff;cursor:pointer}
+  .actions-top{display:flex;gap:8px}
+  .btn{background:var(--btn2);border:0;border-radius:999px;padding:8px 12px;color:#fff;font-weight:700;cursor:pointer;text-decoration:none}
+  .btn.primary{background:var(--btn)}
   .wrap{max-width:900px;margin:24px auto;padding:0 16px}
   .card{background:#0b1220;border:1px solid #1f2937;border-radius:16px;padding:20px}
   .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -16,13 +19,12 @@
   .row{display:flex;gap:8px;align-items:center}
   .hint{color:#9ca3af;font-size:12px;margin-top:4px}
   .actions{display:flex;gap:8px;margin-top:16px}
-  .btn{background:#6366f1;border:0;border-radius:10px;padding:10px 14px;color:#fff;font-weight:600;cursor:pointer}
-  .ghost{background:#334155}
+  .save{background:var(--btn);border:0;border-radius:10px;padding:10px 14px;color:#fff;font-weight:600;cursor:pointer}
   .ok{color:#86efac;margin-left:8px}
+  @media (max-width:700px){ .grid{grid-template-columns:1fr} }
 </style>
 
 <script src="/api/public-config.js"></script>
-<!--   <script type="module" src="/js/auth-widget.js"></script>   -->
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2?bundle";
   const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
@@ -61,7 +63,7 @@
     f.notify.checked   = p.notify_email ?? true;
   }
 
-  function csvToArray(s){ return (s||"").split(",").map(x=>x.trim()).filter(Boolean); }
+  const csvToArray = s => (s||"").split(",").map(x=>x.trim()).filter(Boolean);
 
   async function save(){
     msg("Guardando…");
@@ -82,10 +84,7 @@
       notify_email: !!f.notify.checked
     };
 
-    const { error } = await sb
-      .from("buyer_prefs")
-      .upsert(payload, { onConflict:"user_id" });
-
+    const { error } = await sb.from("buyer_prefs").upsert(payload, { onConflict:"user_id" });
     if (error) { msg("Error guardando: "+error.message); return; }
     msg("Preferencias guardadas", true);
   }
@@ -100,7 +99,10 @@
 
 <header>
   <h1>Mi cuenta — Preferencias</h1>
-  <button id="logout">Cerrar sesión</button>
+  <div class="actions-top">
+    <a class="btn" href="/">Inicio</a>
+    <button id="logout" class="btn primary">Cerrar sesión</button>
+  </div>
 </header>
 
 <div class="wrap">
@@ -170,7 +172,7 @@
       </div>
 
       <div class="actions">
-        <button id="save" class="btn">Guardar preferencias</button>
+        <button id="save" class="save">Guardar preferencias</button>
         <span id="msg"></span>
       </div>
     </form>

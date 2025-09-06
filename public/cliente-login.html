@@ -4,18 +4,29 @@
 <title>Acceso — Cliente</title>
 <link rel="icon" href="/favicon.ico">
 <style>
+  :root{ --nav:#111827; --nav-b:#1f2937; --btn:#6366f1; --btn2:#334155 }
   body{background:#0f172a;color:#e5e7eb;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0}
-  .wrap{max-width:420px;margin:64px auto;padding:0 16px}
+  /* Top bar con Inicio */
+  header{display:flex;justify-content:space-between;align-items:center;background:var(--nav);border-bottom:1px solid var(--nav-b);padding:12px 16px}
+  .brand{font-weight:800;letter-spacing:.2px}
+  .btn{background:var(--btn2);border:0;border-radius:999px;padding:8px 12px;color:#fff;font-weight:700;cursor:pointer;text-decoration:none}
+  .btn.primary{background:var(--btn)}
+  /* Tarjeta login */
+  .wrap{max-width:420px;margin:48px auto;padding:0 16px}
   .card{background:#111827;border:1px solid #1f2937;border-radius:16px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
   h1{margin:0 0 16px;font-size:24px}
   label{display:block;font-size:14px;margin:10px 0 6px;color:#a3a3a3}
   input{width:100%;background:#0b1220;border:1px solid #243042;border-radius:10px;padding:12px;color:#e5e7eb}
   .row{display:flex;gap:8px;margin-top:14px}
-  button{flex:1;background:#6366f1;border:0;border-radius:10px;padding:12px 14px;color:#fff;font-weight:600;cursor:pointer}
-  button.secondary{background:#334155}
+  button{flex:1;background:var(--btn);border:0;border-radius:10px;padding:12px 14px;color:#fff;font-weight:600;cursor:pointer}
+  button.secondary{background:var(--btn2)}
   .msg{margin-top:12px;font-size:14px;color:#a3a3a3;min-height:20px}
 </style>
-<script src="/api/public-config.js"></script>
+
+<header>
+  <span class="brand">My Auto Import</span>
+  <a class="btn" href="/">Inicio</a>
+</header>
 
 <script src="/api/public-config.js"></script>
 <script type="module">
@@ -25,29 +36,27 @@
 
   const form = document.querySelector("#f");
   const msg = document.querySelector("#msg");
-  const goHome = () => location.replace("/");   // <- destino: HOME
+  const toHome = () => location.href = "/";
 
-  // Si ya hay sesión → HOME
-  sb.auth.getSession().then(({ data }) => { if (data?.session) goHome(); });
+  // Si ya hay sesión → a Home
+  sb.auth.getSession().then(({ data }) => { if (data?.session) toHome(); });
 
   document.querySelector("#login").onclick = async () => {
     msg.textContent = "Iniciando sesión…";
     const email = form.email.value.trim(); const password = form.password.value;
     const { error } = await sb.auth.signInWithPassword({ email, password });
     if (error) { msg.textContent = "Error: " + error.message; return; }
-    msg.textContent = "OK. Redirigiendo…"; goHome(); // <- HOME
+    msg.textContent = "OK. Redirigiendo…"; toHome();
   };
 
   document.querySelector("#signup").onclick = async () => {
     msg.textContent = "Creando cuenta…";
     const email = form.email.value.trim(); const password = form.password.value;
-    // marcamos 'from=client' para que el callback también vuelva a HOME
     const emailRedirectTo = `${location.origin}/auth-callback.html?from=client`;
     const { error } = await sb.auth.signUp({ email, password, options:{ emailRedirectTo }});
     msg.textContent = error ? ("Error: " + error.message) : "Cuenta creada. Revisa tu correo para confirmar.";
   };
 </script>
-
 
 <div class="wrap">
   <div class="card">
