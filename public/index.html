@@ -4,341 +4,243 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-  <title>My Auto Import — Importación y Exportación de Coches Premium</title>
-  <meta name="description" content="Importamos y exportamos coches premium a medida desde Europa y EE.UU. Inspección, logística, matriculación y garantía. Pide presupuesto sin compromiso.">
+  <title>My Auto Import — Vehículos premium desde Alemania</title>
+  <meta name="description" content="Importamos vehículos premium desde Alemania con garantía completa y la máxima calidad. Gestión integral, financiación y entrega rápida.">
   <meta name="robots" content="index,follow">
 
-  <!-- Canonical & Social -->
-  <link id="canonical" rel="canonical" href="https://myautoimport.es/">
+  <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="My Auto Import">
-  <meta property="og:title" content="My Auto Import — Coches Premium Importados">
-  <meta property="og:description" content="Vehículos verificados, importación rápida y garantía europea. Solicita tu coche a medida.">
-  <meta property="og:image" id="og-image" content="https://myautoimport.es/og-image.jpg">
-  <meta property="og:url" id="og-url" content="https://myautoimport.es/">
+  <meta property="og:title" content="Vehículos premium desde Alemania — My Auto Import">
+  <meta property="og:description" content="Importamos vehículos premium desde Alemania con garantía completa y la máxima calidad.">
+  <meta property="og:image" content="/og-image.jpg">
+  <meta property="og:url" content="https://myautoimport.es/">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="My Auto Import — Coches Premium Importados">
-  <meta name="twitter:description" content="Vehículos verificados, importación rápida y garantía europea. Solicita tu coche a medida.">
-  <meta name="twitter:image" id="twitter-image" content="https://myautoimport.es/og-image.jpg">
 
-  <!-- Favicons / PWA (sin duplicados) -->
+  <!-- Favicons / PWA -->
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="alternate icon" href="/favicon.ico" sizes="any">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest?v=2">
   <meta name="theme-color" content="#0f172a">
 
-  <!-- Config + Auth -->
+  <!-- Auth (tu widget) -->
   <script src="/api/public-config.js"></script>
   <script type="module" src="/js/auth-widget.js"></script>
 
-  <!-- JSON-LD AutoDealer -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "AutoDealer",
-    "name": "My Auto Import",
-    "url": "https://myautoimport.es",
-    "areaServed": "España",
-    "logo": "https://myautoimport.es/logo.png",
-    "telephone": "+34 641 338 743",
-    "sameAs": ["https://wa.me/34641338743"]
-  }
-  </script>
-
-  <!-- Dinamizar canonical/OG con SITE_ORIGIN -->
-  <script>
-    (function () {
-      const cfg = window.__APP_CONFIG__ || {};
-      const site = (cfg.SITE_ORIGIN || location.origin).replace(/\/$/, "");
-      document.getElementById('canonical')?.setAttribute('href', `${site}/`);
-      document.getElementById('og-url')?.setAttribute('content', `${site}/`);
-      const ogImg = document.getElementById('og-image');
-      if (ogImg) ogImg.setAttribute('content', `${site}/og-image.jpg`);
-      const twImg = document.getElementById('twitter-image') || document.querySelector('meta[name="twitter:image"]');
-      if (twImg) twImg.setAttribute('content', `${site}/og-image.jpg`);
-    })();
-  </script>
-
-  <!-- Fonts -->
+  <!-- Fuentes -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
   <!-- CSS -->
   <link rel="stylesheet" href="/css/main.css">
-
-  <!-- Utils -->
-  <script src="/js/utils.js" defer></script>
-
-  <!-- Preload del LCP del hero con variantes -->
-  <link rel="preload" as="image"
-        href="/img/img_car_960.jpg"
-        imagesrcset="/img/img_car_640.jpg 640w, /img/img_car_960.jpg 960w, /img/img_car_1440.jpg 1440w"
-        imagesizes="(max-width: 960px) 100vw, 50vw"
-        fetchpriority="high">
-
-  <!-- Cloudflare Web Analytics -->
-  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "6bacc6c3cd2f482793c643c5fe8df0b7"}'></script>
 </head>
 <body>
-
   <!-- Header -->
   <header class="site-header" role="banner">
     <div class="nav-wrap">
-      <a class="brand" href="/" aria-label="Inicio">My Auto Import</a>
+      <a class="brand" href="/" aria-label="Inicio">
+        <span class="brand-logo" aria-hidden="true">🚗</span>
+        <span>Autolimport Iberia</span>
+      </a>
+
       <button id="nav-toggle" class="nav-toggle" aria-label="Abrir menú" aria-controls="mobile-drawer" aria-expanded="false">
         <span class="bar"></span><span class="bar"></span><span class="bar"></span>
       </button>
+
       <nav class="nav-desktop" aria-label="Menú principal">
-        <a href="#servicios">Servicios</a>
+        <a href="/" class="active">Inicio</a>
         <a href="/stock.html">Stock</a>
         <div id="user-nav" class="user-nav"></div>
-        <a href="#contacto" class="btn primary">Contacto</a>
+        <a href="/#contacto" class="btn primary">Contactar</a>
       </nav>
     </div>
 
-    <!-- Drawer -->
+    <!-- Drawer móvil -->
     <div id="mobile-drawer" class="drawer" role="dialog" aria-modal="true" aria-label="Menú">
       <div class="drawer-inner">
         <div class="drawer-top">
           <span class="drawer-title">Menú</span>
           <button class="drawer-close" aria-label="Cerrar menú">✕</button>
         </div>
-        <nav class="drawer-nav">
-          <a href="#servicios" class="drawer-link">Servicios</a>
+        <nav class="drawer-nav" aria-label="Navegación móvil">
+          <a href="/" class="drawer-link active">Inicio</a>
           <a href="/stock.html" class="drawer-link">Stock</a>
-          <a href="#contacto" class="drawer-link btn primary" style="text-align:center;">Contacto</a>
+          <a href="/#contacto" class="drawer-link btn primary" style="text-align:center;">Contactar</a>
         </nav>
-
-        <!-- Bloque usuario (móvil) -->
         <div id="user-nav-mobile" class="drawer-user" aria-label="Estado de sesión"></div>
-
         <div style="height:calc(12px + env(safe-area-inset-bottom,0px))"></div>
       </div>
       <button class="drawer-backdrop" tabindex="-1" aria-hidden="true"></button>
     </div>
   </header>
 
-  <!-- HERO -->
-  <section class="hero" role="region" aria-label="Presentación principal">
-    <div>
-      <h1>Importación y Exportación de Coches Premium</h1>
-      <p>Encuentra el coche que buscas desde Europa o EE.UU. Nos encargamos de transporte, aduanas, matriculación y garantía.</p>
-      <a href="#contacto" class="btn primary">Solicitar información</a>
+  <main>
+    <!-- HERO emer -->
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <h1>Vehículos Premium<br>desde Alemania</h1>
+          <p class="subtitle">
+            Importamos directamente desde Alemania los mejores vehículos
+            con garantía completa y la máxima calidad alemana.
+          </p>
+          <div class="hero-cta">
+            <a class="btn primary lg" href="/stock.html">Ver Stock Disponible</a>
+            <a class="btn outline lg" href="/#contacto">Contactar Ahora</a>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="stat-num">15+</div>
+              <div class="stat-label">Años de experiencia</div>
+            </div>
+            <div class="stat">
+              <div class="stat-num">500+</div>
+              <div class="stat-label">Vehículos importados</div>
+            </div>
+            <div class="stat">
+              <div class="stat-num">100%</div>
+              <div class="stat-label">Garantía completa</div>
+            </div>
+          </div>
+        </div>
+
+        <figure class="hero-media">
+          <img src="/img/hero-bmw.jpg" alt="BMW en carretera, importación premium" loading="eager" decoding="async" width="1280" height="900">
+        </figure>
+      </div>
+    </section>
+
+    <!-- Por qué elegirnos -->
+    <section class="features">
+      <h2>¿Por qué elegirnos?</h2>
+      <p class="section-sub">La confianza de nuestros clientes nos avala</p>
+
+      <div class="feature-grid">
+        <article class="card">
+          <div class="icon">🛡️</div>
+          <h3>Garantía Completa</h3>
+          <p>Todos nuestros vehículos cuentan con garantía europea oficial.</p>
+        </article>
+        <article class="card">
+          <div class="icon">🔎</div>
+          <h3>Inspección Total</h3>
+          <p>Informe completo, historial y verificación técnica antes de la compra.</p>
+        </article>
+        <article class="card">
+          <div class="icon">⚡</div>
+          <h3>Proceso Rápido</h3>
+          <p>Gestión integral y entrega ágil directamente desde Alemania.</p>
+        </article>
+        <article class="card">
+          <div class="icon">⭐</div>
+          <h3>Calidad Premium</h3>
+          <p>Solo vehículos de origen contrastado y mantenimiento al día.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Contacto -->
+    <section id="contacto" class="contact">
+      <div class="contact-inner">
+        <h2>¿Buscas un vehículo específico?</h2>
+        <p class="section-sub">Cuéntanos y te ayudamos a encontrarlo.</p>
+
+        <form id="contact-form" class="contact-form" novalidate>
+          <div class="grid">
+            <div class="col">
+              <label for="nombre">Nombre</label>
+              <input type="text" id="nombre" name="nombre" placeholder="Nombre" required minlength="2" maxlength="100">
+            </div>
+            <div class="col">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" placeholder="Email" required maxlength="254">
+            </div>
+          </div>
+          <label for="mensaje">Mensaje</label>
+          <textarea id="mensaje" name="mensaje" placeholder="Qué necesitas…" rows="4" required minlength="10" maxlength="2000"></textarea>
+
+          <div class="form-actions">
+            <button class="btn primary" type="submit">Enviar</button>
+            <p id="form-status" aria-live="polite"></p>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="col">
+        <div class="brand mini">
+          <span class="brand-logo">🚗</span> Autolimport Iberia
+        </div>
+        <p>Especialistas en importación de vehículos premium desde Alemania.</p>
+      </div>
+      <div class="col">
+        <h4>Servicios</h4>
+        <ul>
+          <li>Importación desde Alemania</li>
+          <li>Gestión de documentación</li>
+          <li>Inspección técnica</li>
+          <li>Financiación</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h4>Contacto</h4>
+        <ul>
+          <li>Madrid, España</li>
+          <li><a href="mailto:info@myautoimport.es">info@myautoimport.es</a></li>
+        </ul>
+      </div>
     </div>
-    <div>
-      <picture>
-        <source type="image/avif" srcset="/img/img_car_640.avif 640w, /img/img_car_960.avif 960w, /img/img_car_1440.avif 1440w" sizes="(max-width:960px) 100vw, 50vw">
-        <source type="image/webp" srcset="/img/img_car_640.webp 640w, /img/img_car_960.webp 960w, /img/img_car_1440.webp 1440w" sizes="(max-width:960px) 100vw, 50vw">
-        <img src="/img/img_car_960.jpg" alt="Ejemplo de coche premium importado"
-             width="960" height="640" decoding="async" loading="eager" fetchpriority="high"
-             srcset="/img/img_car_640.jpg 640w, /img/img_car_960.jpg 960w, /img/img_car_1440.jpg 1440w"
-             sizes="(max-width:960px) 100vw, 50vw">
-      </picture>
-    </div>
-  </section>
-
-  <!-- SERVICIOS -->
-  <section id="servicios" aria-labelledby="servicios-title">
-    <h2 id="servicios-title">Servicios</h2>
-    <div class="grid">
-      <article class="card"><h3 style="margin-top:0;color:#fff">Búsqueda a medida</h3><p>Encontramos el coche que quieres con historial verificado.</p></article>
-      <article class="card"><h3 style="margin-top:0;color:#fff">Transporte y aduanas</h3><p>Gestión logística completa hasta tu puerta.</p></article>
-      <article class="card"><h3 style="margin-top:0;color:#fff">Matriculación</h3><p>Nos encargamos de ITV y papeles en España.</p></article>
-    </div>
-  </section>
-
-  <!-- STOCK -->
-  <section id="stock" aria-labelledby="stock-title">
-    <h2 id="stock-title">Coches disponibles</h2>
-    <div class="grid" id="stock-grid" role="list"></div>
-    <div style="text-align:center; margin-top:12px">
-      <a class="btn primary" href="/stock.html">Ver todo el stock</a>
-    </div>
-  </section>
-
-  <!-- CONTACTO -->
-  <section id="contacto" aria-labelledby="contacto-title">
-    <h2 id="contacto-title">Contacto</h2>
-    <form id="contact-form" aria-label="Formulario de contacto" novalidate>
-      <label for="nombre">Nombre</label>
-      <input type="text" id="nombre" name="nombre" placeholder="Nombre" required minlength="2" maxlength="100">
-      <label for="email">Email</label>
-      <input type="email" id="email" name="email" placeholder="Email" required maxlength="254">
-      <label for="telefono">Teléfono (opcional)</label>
-      <input type="tel" id="telefono" name="telefono" placeholder="Teléfono (opcional)" pattern="[0-9()+\-\\s]{7,}">
-      <label for="mensaje">Mensaje</label>
-      <textarea id="mensaje" name="mensaje" placeholder="Mensaje" required minlength="10" maxlength="2000"></textarea>
-
-      <!-- hidden -->
-      <input type="hidden" name="car_id" id="car_id">
-      <input type="hidden" name="coche_interes" id="coche_interes">
-      <input type="text" name="company" autocomplete="off" tabindex="-1" style="position:absolute; left:-10000px;">
-
-      <button type="submit" id="submit-btn">Enviar</button>
-      <p id="form-status" aria-live="polite" style="margin-top:12px;text-align:center;"></p>
-    </form>
-  </section>
-
-  <!-- FOOTER -->
-  <footer>
-    © 2025 My Auto Import · Importación y Exportación de Coches
+    <div class="copy">© <span id="year"></span> My Auto Import. Todos los derechos reservados.</div>
   </footer>
 
-  <!-- FAB móvil -->
-  <div class="fab" aria-label="Acciones rápidas">
-    <a href="#contacto" aria-label="Ir a contacto">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z" stroke-linejoin="round" stroke-linecap="round"/></svg>
-      Contacto
-    </a>
-    <a class="secondary"
-       href="https://wa.me/34641338743?text=Buenas%20%F0%9F%91%8B%2C%20vengo%20de%20la%20web%20de%20My%20Auto%20Import.%20Me%20gustar%C3%ADa%20recibir%20informaci%C3%B3n%20acerca%20de%20los%20veh%C3%ADculos%21"
-       target="_blank" rel="noopener" aria-label="Abrir WhatsApp">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.86 11.86 0 0 0 12.02 0C5.4.02.03 5.38 0 12a11.9 11.9 0 0 0 1.62 6L0 24l6.17-1.62A11.96 11.96 0 0 0 12 24h.01C18.63 24 24 18.64 24 12.02c0-3.18-1.24-6.18-3.48-8.54ZM12 22a9.9 9.9 0 0 1-5.05-1.39l-.36-.21-3.66.96.98-3.56-.23-.37A10 10 0 1 1 12 22Zm5.54-7.46c-.3-.15-1.77-.87-2.05-.97-.28-.1-.48-.15-.68.15-.2.3-.78.97-.95 1.17-.17.2-.35.22-.65.07-1.77-.88-2.93-1.57-4.09-3.57-.31-.53.31-.49.88-1.63.1-.2.05-.37-.03-.52-.08-.15-.68-1.63-.93-2.23-.24-.58-.5-.5-.68-.5-.17 0-.37-.02-.57-.02s-.52.07-.79.37c-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.07 4.49.71.31 1.27.5 1.7.64.71.22 1.36.19 1.88.12.57-.08 1.77-.72 2.02-1.41.25-.69.25-1.28.17-1.41-.07-.13-.27-.2-.57-.35Z"/></svg>
-      WhatsApp
-    </a>
-  </div>
+  <!-- Utils + validación que ya usas -->
+  <script src="/js/utils.js" defer></script>
 
-  <!-- App: Stock + Lead (igual, con mejoras de fallback y sanitización) -->
   <script>
-  (function(){
-    const { SITE_ORIGIN } = window.__APP_CONFIG__ || {};
-    const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
-    const BASE = `${SUPABASE_URL}/rest/v1`;
-    const ANON = SUPABASE_ANON_KEY;
+    // Año en footer
+    document.getElementById('year').textContent = new Date().getFullYear();
 
-    const grid = document.getElementById('stock-grid');
-    const FALLBACK = '/img/fallback_car.jpg';
-
-    function coverOf(rec){
-      if (rec.cover) return rec.cover;
-      if (Array.isArray(rec.imagenes) && rec.imagenes.length) return rec.imagenes[0];
-      if (typeof rec.imagenes === 'string') {
-        const m = rec.imagenes.match(/^{"?(.+?)"?}$/);
-        return m ? m[1] : rec.imagenes;
-      }
-      return null;
-    }
-    const sanitizeHTML = s => (s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-
-    async function fetchJSON(url){
-      const res = await fetch(url, { headers:{ apikey: ANON, Authorization: `Bearer ${ANON}` }});
-      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-      return res.json();
-    }
-
-    async function fetchCars(){
-      const selView = 'id,marca,modelo,version,anio,km,combustible,caja,cover,precio_objetivo,created_at,estado_publicacion';
-      const urlView = `${BASE}/cars_with_cover`
-        + `?select=${encodeURIComponent(selView)}`
-        + `&order=created_at.desc&limit=12`
-        + `&or=${encodeURIComponent('(estado_publicacion.eq.publicado,estado_publicacion.eq.disponible,estado_publicacion.is.null)')}`;
-
-      try {
-        const data = await fetchJSON(urlView);
-        if (Array.isArray(data) && data.length) return data;
-        console.warn("[HOME] 'cars_with_cover' vacío, paso a 'cars'.");
-      } catch(e){
-        console.warn("[HOME] view falló, paso a 'cars':", e.message);
-      }
-
-      const sel = 'id,marca,modelo,version,anio,km,combustible,caja,imagenes,precio_objetivo,created_at,estado_publicacion';
-      const url = `${BASE}/cars?select=${encodeURIComponent(sel)}&order=created_at.desc&limit=12`;
-      return fetchJSON(url);
-    }
-
-    function render(cars){
-      grid.innerHTML = cars.map(c => {
-        const titulo = `${c.marca ?? ''} ${c.modelo ?? ''} ${c.anio ?? ''}`.trim();
-        const img    = coverOf(c) || FALLBACK;
-        const km     = c.km != null ? `${Number(c.km).toLocaleString('es-ES')} km · ` : '';
-        const sub    = `${km}${c.combustible ?? '-'} · ${c.caja ?? '-'}`;
-        const price  = c.precio_objetivo != null ? `${Number(c.precio_objetivo).toLocaleString('es-ES')} €` : 'Bajo pedido';
-        return `
-          <article class="card" role="listitem">
-            <a href="car.html?id=${encodeURIComponent(c.id)}" aria-label="Ver ${sanitizeHTML(titulo)}">
-              <img src="${img}" alt="${sanitizeHTML(titulo)}" loading="lazy" decoding="async"
-                   width="400" height="260" referrerpolicy="no-referrer"
-                   onerror="this.onerror=null;this.src='${FALLBACK}'">
-            </a>
-            <div style="padding:10px">
-              <b style="color:#fff">${sanitizeHTML(titulo)}</b><br>
-              <span>${sanitizeHTML(sub)}</span><br>
-              <span class="tag" style="color:#E5E7EB">${sanitizeHTML(price)}</span>
-            </div>
-          </article>`;
-      }).join('');
-    }
-
-    (async () => {
-      try{
-        if (!grid) return;
-        grid.innerHTML = "<p style='color:var(--muted)'>Cargando coches…</p>";
-        const cars = await fetchCars();
-        if (!cars.length){ grid.innerHTML = "<p style='color:var(--muted)'>No hay coches publicados ahora mismo.</p>"; return; }
-        render(cars);
-      }catch(e){
-        console.error(e);
-        grid.innerHTML = "<p style='color:#FCA5A5'>Error cargando coches.</p>";
-      }
-    })();
-
-    /* ===== Envío del formulario de contacto (HOME) ===== */
-    const formEl = document.getElementById('contact-form');
-    formEl?.addEventListener('submit', async (e) => {
+    // Envío del formulario (misma lógica que usas en otras páginas)
+    document.getElementById('contact-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const fd = new FormData(formEl);
-
-      // Honeypot
-      if ((fd.get('company') || '').toString().trim()) return;
-
+      const fd = new FormData(e.currentTarget);
       const payload = {
         nombre: (fd.get('nombre')||'').toString().trim(),
-        email:  (fd.get('email') ||'').toString().trim(),
-        telefono: (fd.get('telefono')||'').toString().trim(),
+        email: (fd.get('email')||'').toString().trim(),
         mensaje: (fd.get('mensaje')||'').toString().trim(),
-        coche_interes: (fd.get('coche_interes')||'').toString().trim() || null,
-        car_id: (fd.get('car_id')||'').toString().trim() || null,
         page_url: location.href,
         user_agent: navigator.userAgent
       };
 
       const statusEl = document.getElementById('form-status');
-      const submitBtn = document.getElementById('submit-btn');
-
-      // Validación con utils.js
       if (!Validator.required(payload.nombre, 2)) { statusEl.textContent = 'Nombre inválido.'; return; }
       if (!Validator.email(payload.email)) { statusEl.textContent = 'Email inválido.'; return; }
-      if (payload.telefono && !Validator.phone(payload.telefono)) { statusEl.textContent = 'Teléfono inválido.'; return; }
       if (!Validator.required(payload.mensaje, 10)) { statusEl.textContent = 'Mensaje demasiado corto.'; return; }
 
       statusEl.textContent = 'Enviando…';
-      submitBtn.disabled = true;
-
       try {
         const res = await fetch('/api/notify-lead', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
           body: JSON.stringify(payload)
         });
-        if (!res.ok) throw new Error('bad_status');
+        if (!res.ok) throw 0;
         statusEl.textContent = '¡Gracias! Te contactaremos en breve.';
-        formEl.reset();
+        e.currentTarget.reset();
         notify?.success?.('Lead enviado correctamente');
-      } catch (err) {
-        console.error(err);
+      } catch {
         statusEl.textContent = 'Error enviando lead.';
         notify?.error?.('No se pudo enviar el formulario');
-      } finally {
-        submitBtn.disabled = false;
       }
     });
-  })();
-  </script>
 
-  <!-- Menú (drawer móvil + accesibilidad) -->
-  <script>
+    // Drawer accesible (igual que en stock/car)
     (() => {
       const toggleBtn = document.getElementById('nav-toggle');
       const drawer    = document.getElementById('mobile-drawer');
@@ -366,7 +268,6 @@
       toggleBtn.addEventListener('click', () => isOpen() ? close() : open(), { passive:true });
       closeBtn?.addEventListener('click', close, { passive:true });
 
-      // Accesibilidad: trap focus + Escape
       window.addEventListener('keydown', (e) => {
         if (!isOpen()) return;
         if (e.key === 'Escape') { e.preventDefault(); close(); }
@@ -379,13 +280,15 @@
         }
       });
 
-      // Resets por navegación/ocultación
-      const resetDrawerState = () => { drawer.classList.remove('open'); document.body.classList.remove('nav-open'); toggleBtn.setAttribute('aria-expanded','false'); };
-      window.addEventListener('pageshow', resetDrawerState);
-      window.addEventListener('pagehide', resetDrawerState);
-      window.addEventListener('beforeunload', resetDrawerState);
-      document.addEventListener('visibilitychange', () => { if (document.hidden) resetDrawerState(); });
+      const reset = () => { drawer.classList.remove('open'); document.body.classList.remove('nav-open'); toggleBtn.setAttribute('aria-expanded','false'); };
+      window.addEventListener('pageshow', reset);
+      window.addEventListener('pagehide', reset);
+      window.addEventListener('beforeunload', reset);
+      document.addEventListener('visibilitychange', ()=>{ if(document.hidden) reset(); });
     })();
   </script>
+
+  <!-- Analítica (Cloudflare) -->
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"6bacc6c3cd2f482793c643c5fe8df0b7"}'></script>
 </body>
 </html>
