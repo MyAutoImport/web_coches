@@ -36,11 +36,18 @@
   <!-- CSS (primero tu base, luego el tema Emergent) -->
   <!-- <link rel="stylesheet" href="/css/main.css"> -->
   <link rel="stylesheet" href="/css/emergent.css">
-  
-  <style>body{background:#0b1220}</style> <!-- para ponerlo oscuro -->
+
+  <!-- Override mínimo para fondo/contraste global -->
+  <style>
+    body{
+      background:#0b1220;
+      color:#e5e7eb;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans";
+    }
+  </style>
 </head>
 <body>
-  <!-- Header (lo dejo fuera del #em-app para que pueda ser global si quieres) -->
+  <!-- Header (fuera de #em-app si lo quieres reutilizar en otras páginas) -->
   <header class="site-header" role="banner">
     <div class="nav-wrap">
       <a class="brand" href="/" aria-label="Inicio">
@@ -79,10 +86,10 @@
     </div>
   </header>
 
-  <!-- ========= A PARTIR DE AQUÍ TODO EL DISEÑO NUEVO VA ENVUELTO ========= -->
+  <!-- ===== Todo el diseño nuevo envuelto en #em-app ===== -->
   <div id="em-app" role="main" aria-label="Landing My Auto Import">
     <main>
-      <!-- HERO emer -->
+      <!-- HERO -->
       <section class="hero">
         <div class="hero-inner">
           <div class="hero-copy">
@@ -204,9 +211,9 @@
       <div class="copy">© <span id="year"></span> My Auto Import. Todos los derechos reservados.</div>
     </footer>
   </div>
-  <!-- ======================== FIN #em-app ======================== -->
+  <!-- ===== FIN #em-app ===== -->
 
-  <!-- Utils + validación que ya usas -->
+  <!-- Utils + validación -->
   <script src="/js/utils.js" defer></script>
 
   <script>
@@ -247,7 +254,7 @@
       }
     });
 
-    // Drawer accesible (igual que en stock/car)
+    // Drawer accesible
     (() => {
       const toggleBtn = document.getElementById('nav-toggle');
       const drawer    = document.getElementById('mobile-drawer');
