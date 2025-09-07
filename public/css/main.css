@@ -135,3 +135,16 @@ html,body{
   .feature-grid{grid-template-columns:1fr}
   .footer-inner{grid-template-columns:1fr}
 }
+
+/* Oculta cualquier banner/aviso de auth que se inyecte arriba */
+.auth-banner, .login-banner, #top-auth-banner, .auth-notice {
+  display: none !important;
+}
+
+/* Por si algún texto del drawer queda a la vista */
+.drawer .drawer-title, .nav-toggle-label {
+  position: absolute;
+  clip: rect(0 0 0 0);
+  width: 1px; height: 1px; overflow: hidden;
+  white-space: nowrap;
+}
