@@ -121,7 +121,7 @@
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    // === Espera defensiva por la config pública ===
+    // Espera defensiva por la config pública
     const waitForConfig = async (ms=3000) => {
       const t0 = performance.now();
       while (!window.__APP_CONFIG__ && performance.now()-t0 < ms) {
@@ -150,18 +150,13 @@
       try{
         if (!carId) { document.body.innerHTML = '<p style="padding:24px">Falta el parámetro <b>id</b>.</p>'; return; }
 
-        // Permite publicado, disponible o null
-        let q = supabase
+        // Consulta directa por ID (evita filtros que puedan ocultar el coche)
+        const { data, error } = await supabase
           .from('cars')
           .select(`id, marca, modelo, version, anio, km, combustible, caja,
                    imagenes, precio_objetivo, descripcion, extras, video_url, estado_publicacion`)
           .eq('id', carId)
-          .limit(1);
-
-        // filtro OR compatible con RLS
-        q = q.or('estado_publicacion.eq.publicado,estado_publicacion.eq.disponible,estado_publicacion.is.null');
-
-        const { data, error } = await q.single();
+          .single();
 
         if (error || !data) { document.body.innerHTML = '<p style="padding:24px">Coche no encontrado.</p>'; return; }
 
@@ -251,7 +246,7 @@
           prevBtn.onclick = ()=>{ stop(); set(idx-1); start(); };
           nextBtn.onclick = ()=>{ stop(); set(idx+1); start(); };
           if (N<=1){ prevBtn.disabled = true; nextBtn.disabled = true; }
-          dots.forEach(d => { d.onclick = () => { stop(); set(+d.dataset.i); start(); }; });  <!-- FIX: paréntesis correcto -->
+          dots.forEach(d => { d.onclick = () => { stop(); set(+d.dataset.i); start(); }; });
 
           // Gestos táctiles
           let startX=0, dx=0, touching=false;
