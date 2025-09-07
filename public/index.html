@@ -22,40 +22,23 @@
   <meta name="twitter:image" id="twitter-image" content="https://myautoimport.es/og-image.jpg">
 
   <!-- Favicons / PWA -->
-  <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="alternate icon" href="/favicon.ico" sizes="any">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="manifest" href="/site.webmanifest?v=2">
-  <meta name="theme-color" content="#0f172a">
-  
-  <script src="/api/public-config.js"></script>
-  <script type="module" src="/js/auth-widget.js"></script>
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#ffffff">
 
-  <!-- JSON-LD AutoDealer -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "AutoDealer",
-    "name": "My Auto Import",
-    "url": "https://myautoimport.es",
-    "areaServed": "España",
-    "logo": "https://myautoimport.es/logo.png",
-    "telephone": "+34 641 338 743",
-    "sameAs": ["https://wa.me/34641338743"]
-  }
-  </script>
+  <!-- Config + Auth (mantener) -->
+  <script src="/api/public-config.js" defer></script>
+  <script type="module" src="/js/auth-widget.js"></script>
 
   <!-- Dinamizar canonical/OG con SITE_ORIGIN -->
   <script>
     (function () {
       const cfg = window.__APP_CONFIG__ || {};
       const site = (cfg.SITE_ORIGIN || location.origin).replace(/\/$/, "");
-
-      // canonical y og:url a la raíz
       document.getElementById('canonical')?.setAttribute('href', `${site}/`);
       document.getElementById('og-url')?.setAttribute('content', `${site}/`);
-
-      // imágenes OG/Twitter (fallback)
       const ogImg = document.getElementById('og-image');
       if (ogImg) ogImg.setAttribute('content', `${site}/og-image.jpg`);
       const twImg = document.getElementById('twitter-image') || document.querySelector('meta[name="twitter:image"]');
@@ -63,51 +46,40 @@
     })();
   </script>
 
-  <!-- Fonts -->
+  <!-- Fuentes -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- CSS externo -->
+  <!-- CSS -->
   <link rel="stylesheet" href="/css/main.css">
 
-  <!-- Utils (defer) -->
-  <script src="js/utils.js" defer></script>
-  
+  <!-- Utils -->
+  <script src="/js/utils.js" defer></script>
+
   <!-- Cloudflare Web Analytics -->
-  <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "6bacc6c3cd2f482793c643c5fe8df0b7"}'></script><!-- End Cloudflare Web Analytics -->
-  
-  <link rel="manifest" href="/site.webmanifest" crossorigin="anonymous" />
-
-  <!-- Favicon moderno (SVG) -->
-  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-
-  <!-- Fallback clásico (.ico); quítalo si no vas a incluir el archivo -->
-  <link rel="alternate icon" href="/favicon.ico" sizes="any" />
-
-  <!-- Icono Apple / PWA -->
-  <link rel="apple-touch-icon" href="/img/icon-192.png" />
-
-  <meta name="theme-color" content="#0b1220" />
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"6bacc6c3cd2f482793c643c5fe8df0b7"}'></script>
 </head>
 <body>
 
-  <!-- Header -->
+  <!-- Header (ligero, tipo Import) -->
   <header class="site-header" role="banner">
     <div class="nav-wrap">
       <a class="brand" href="/" aria-label="Inicio">My Auto Import</a>
-      <button id="nav-toggle" class="nav-toggle" aria-label="Abrir menú" aria-controls="mobile-drawer" aria-expanded="false">
-        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
-      </button>
+
       <nav class="nav-desktop" aria-label="Menú principal">
         <a href="#servicios">Servicios</a>
         <a href="/stock.html">Stock</a>
-		<div id="user-nav" class="user-nav"></div>
+        <div id="user-nav" class="user-nav"></div>
         <a href="#contacto" class="btn primary">Contacto</a>
       </nav>
+
+      <button id="nav-toggle" class="nav-toggle" aria-label="Abrir menú" aria-controls="mobile-drawer" aria-expanded="false">
+        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+      </button>
     </div>
 
-    <!-- Drawer -->
+    <!-- Drawer móvil (mantener IDs) -->
     <div id="mobile-drawer" class="drawer" role="dialog" aria-modal="true" aria-label="Menú">
       <div class="drawer-inner">
         <div class="drawer-top">
@@ -119,277 +91,167 @@
           <a href="/stock.html" class="drawer-link">Stock</a>
           <a href="#contacto" class="drawer-link btn primary" style="text-align:center;">Contacto</a>
         </nav>
-		
-		<!-- Bloque usuario (móvil) -->
-		<div id="user-nav-mobile" class="drawer-user" aria-label="Estado de sesión"></div>
-		
+
+        <!-- Bloque usuario móvil -->
+        <div id="user-nav-mobile" class="drawer-user" aria-label="Estado de sesión"></div>
         <div style="height:calc(12px + env(safe-area-inset-bottom,0px))"></div>
       </div>
       <button class="drawer-backdrop" tabindex="-1" aria-hidden="true"></button>
     </div>
   </header>
 
-  <!-- HERO -->
-  <section class="hero" role="region" aria-label="Presentación principal">
-    <div>
-      <h1>Importación y Exportación de Coches Premium</h1>
-      <p>Encuentra el coche que buscas desde Europa o EE.UU. Nos encargamos de transporte, aduanas, matriculación y garantía.</p>
-      <a href="#contacto" class="btn primary">Solicitar información</a>
+  <!-- HERO claro, inspirado en Import.html -->
+  <section class="hero hero-light" role="region" aria-label="Presentación principal">
+    <div class="hero-copy">
+      <p class="eyebrow">Importación de Coches Premium</p>
+      <h1>Tu vehículo ideal, <span class="underline">sin complicaciones</span></h1>
+      <p class="lead">
+        Traemos a España el coche que quieres desde Alemania, EE.UU. y Europa.
+        Inspección certificada, logística completa, matriculación y garantía.
+      </p>
+      <div class="hero-ctas">
+        <a href="#contacto" class="btn primary">Solicitar información</a>
+        <a href="/stock.html" class="btn ghost">Ver stock</a>
+      </div>
+      <ul class="hero-bullets" role="list">
+        <li>+15 años de experiencia</li>
+        <li>Historial y peritaje verificado</li>
+        <li>Entrega en toda España</li>
+      </ul>
     </div>
-    <div>
-      <img src="/img/img_car.jpg" alt="Ejemplo de coche premium importado" loading="lazy" decoding="async" width="800" height="500">
+    <div class="hero-media">
+      <img src="/img/img_car.jpg" alt="Coche premium importado" loading="eager" decoding="async" width="960" height="640">
     </div>
   </section>
 
-  <!-- SERVICIOS -->
-  <section id="servicios" aria-labelledby="servicios-title">
+  <!-- Sección “Cómo funciona” -->
+  <section class="steps" id="como-funciona" aria-labelledby="steps-title">
+    <h2 id="steps-title">Cómo funciona</h2>
+    <div class="grid steps-grid">
+      <article class="card step">
+        <div class="step-num">1</div>
+        <h3>Búsqueda a medida</h3>
+        <p>Definimos tu presupuesto y requisitos. Buscamos unidades con historial completo y mantenimiento al día.</p>
+      </article>
+      <article class="card step">
+        <div class="step-num">2</div>
+        <h3>Inspección & Compra</h3>
+        <p>Peritaje profesional, negociación y verificación documental. Sin sorpresas.</p>
+      </article>
+      <article class="card step">
+        <div class="step-num">3</div>
+        <h3>Transporte & Aduanas</h3>
+        <p>Logística puerta a puerta, seguro de transporte y aduanas incluidas.</p>
+      </article>
+      <article class="card step">
+        <div class="step-num">4</div>
+        <h3>Matriculación & Entrega</h3>
+        <p>ITV, tasas y placas. Te lo entregamos listo para circular.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- Servicios (manteniendo ancla) -->
+  <section id="servicios" class="services" aria-labelledby="servicios-title">
     <h2 id="servicios-title">Servicios</h2>
-    <div class="grid">
-      <article class="card"><h3 style="margin-top:0;color:#fff">Búsqueda a medida</h3><p>Encontramos el coche que quieres con historial verificado.</p></article>
-      <article class="card"><h3 style="margin-top:0;color:#fff">Transporte y aduanas</h3><p>Gestión logística completa hasta tu puerta.</p></article>
-      <article class="card"><h3 style="margin-top:0;color:#fff">Matriculación</h3><p>Nos encargamos de ITV y papeles en España.</p></article>
+    <div class="grid services-grid">
+      <article class="card service">
+        <h3>Búsqueda a medida</h3>
+        <p>Localizamos el modelo exacto que quieres. Verificación de kilometraje, daños y propietario.</p>
+      </article>
+      <article class="card service">
+        <h3>Logística internacional</h3>
+        <p>Transporte terrestre o marítimo, seguro y tracking. Gestión integral de aduanas.</p>
+      </article>
+      <article class="card service">
+        <h3>Legalización en España</h3>
+        <p>ITV, tasas, impuestos y matriculación. Entrega con toda la documentación.</p>
+      </article>
     </div>
   </section>
 
-  <!-- STOCK -->
-  <section id="stock" aria-labelledby="stock-title">
+  <!-- Stock destacado (mantener #stock-grid) -->
+  <section id="stock" class="stock" aria-labelledby="stock-title">
     <h2 id="stock-title">Coches disponibles</h2>
-    <div class="grid" id="stock-grid" role="list"></div>
-    <div style="text-align:center; margin-top:12px">
+    <div class="grid stock-grid" id="stock-grid" role="list"></div>
+    <div class="center">
       <a class="btn primary" href="/stock.html">Ver todo el stock</a>
     </div>
   </section>
 
-  <!-- CONTACTO -->
-  <section id="contacto" aria-labelledby="contacto-title">
+  <!-- Testimonios (estático, opcional) -->
+  <section class="reviews" aria-labelledby="reviews-title">
+    <h2 id="reviews-title">Lo que dicen nuestros clientes</h2>
+    <div class="grid reviews-grid">
+      <article class="card review">
+        <p>“Proceso transparente. En 5 semanas tenía mi Audi en casa, con todo en regla.”</p>
+        <span>— Carlos M.</span>
+      </article>
+      <article class="card review">
+        <p>“Me ayudaron a elegir la mejor unidad y se encargaron de todo. 10/10.”</p>
+        <span>— Marta M.</span>
+      </article>
+      <article class="card review">
+        <p>“Gran comunicación y cero estrés. Repetiría sin dudar.”</p>
+        <span>— Andrés M.</span>
+      </article>
+    </div>
+  </section>
+
+  <!-- Contacto (mantener IDs del formulario) -->
+  <section id="contacto" class="contact" aria-labelledby="contacto-title">
     <h2 id="contacto-title">Contacto</h2>
     <form id="contact-form" aria-label="Formulario de contacto" novalidate>
       <label for="nombre">Nombre</label>
-      <input type="text" id="nombre" name="nombre" placeholder="Nombre" required minlength="2" maxlength="100">
+      <input type="text" id="nombre" name="nombre" placeholder="Nombre" required minlength="2" maxlength="100" />
+
       <label for="email">Email</label>
-      <input type="email" id="email" name="email" placeholder="Email" required maxlength="254">
+      <input type="email" id="email" name="email" placeholder="Email" required maxlength="254" />
+
       <label for="telefono">Teléfono (opcional)</label>
-      <input type="tel" id="telefono" name="telefono" placeholder="Teléfono (opcional)" pattern="[0-9()+\-\\s]{7,}">
+      <input type="tel" id="telefono" name="telefono" placeholder="Teléfono (opcional)" pattern="[0-9()+\\-\\s]{7,}" />
+
       <label for="mensaje">Mensaje</label>
-      <textarea id="mensaje" name="mensaje" placeholder="Mensaje" required minlength="10" maxlength="2000"></textarea>
+      <textarea id="mensaje" name="mensaje" placeholder="Cuéntanos qué coche buscas…" required minlength="10" maxlength="2000"></textarea>
 
       <!-- hidden -->
       <input type="hidden" name="car_id" id="car_id">
       <input type="hidden" name="coche_interes" id="coche_interes">
-      <input type="text" name="company" autocomplete="off" tabindex="-1" style="position:absolute; left:-10000px;">
+      <input type="text" name="company" autocomplete="off" tabindex="-1" style="position:absolute;left:-10000px;" aria-hidden="true">
 
       <button type="submit" id="submit-btn">Enviar</button>
-      <p id="form-status" aria-live="polite" style="margin-top:12px;text-align:center;"></p>
+      <p id="form-status" aria-live="polite" class="form-status"></p>
     </form>
   </section>
 
-  <!-- FOOTER -->
-  <footer>
-    © 2025 My Auto Import · Importación y Exportación de Coches
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-wrap">
+      <div class="f-brand">
+        <strong>My Auto Import</strong>
+        <span>Importación y Exportación de Coches</span>
+      </div>
+      <nav class="f-nav" aria-label="Enlaces de pie">
+        <a href="#servicios">Servicios</a>
+        <a href="/stock.html">Stock</a>
+        <a href="#contacto">Contacto</a>
+      </nav>
+      <div class="f-meta">© 2025 · Todos los derechos reservados</div>
+    </div>
   </footer>
 
-  <!-- FAB móvil -->
+  <!-- FAB móvil (mantener) -->
   <div class="fab" aria-label="Acciones rápidas">
     <a href="#contacto" aria-label="Ir a contacto">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z" stroke-linejoin="round" stroke-linecap="round"/></svg>
       Contacto
     </a>
-	
     <a class="secondary"
-		href="https://wa.me/34641338743?text=Buenas%20%F0%9F%91%8B%2C%20vengo%20de%20la%20web%20de%20My%20Auto%20Import.%20Me%20gustar%C3%ADa%20recibir%20informaci%C3%B3n%20acerca%20de%20los%20veh%C3%ADculos%21"
-		target="_blank" rel="noopener" aria-label="Abrir WhatsApp">
-			<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.86 11.86 0 0 0 12.02 0C5.4.02.03 5.38 0 12a11.9 11.9 0 0 0 1.62 6L0 24l6.17-1.62A11.96 11.96 0 0 0 12 24h.01C18.63 24 24 18.64 24 12.02c0-3.18-1.24-6.18-3.48-8.54ZM12 22a9.9 9.9 0 0 1-5.05-1.39l-.36-.21-3.66.96.98-3.56-.23-.37A10 10 0 1 1 12 22Zm5.54-7.46c-.3-.15-1.77-.87-2.05-.97-.28-.1-.48-.15-.68.15-.2.3-.78.97-.95 1.17-.17.2-.35.22-.65.07-1.77-.88-2.93-1.57-4.09-3.57-.31-.53.31-.49.88-1.63.1-.2.05-.37-.03-.52-.08-.15-.68-1.63-.93-2.23-.24-.58-.5-.5-.68-.5-.17 0-.37-.02-.57-.02s-.52.07-.79.37c-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.07 4.49.71.31 1.27.5 1.7.64.71.22 1.36.19 1.88.12.57-.08 1.77-.72 2.02-1.41.25-.69.25-1.28.17-1.41-.07-.13-.27-.2-.57-.35Z"/></svg>
-			WhatsApp
-	</a>
-
+       href="https://wa.me/34641338743?text=Buenas%20%F0%9F%91%8B%2C%20vengo%20de%20la%20web%20de%20My%20Auto%20Import.%20Me%20gustar%C3%ADa%20recibir%20informaci%C3%B3n%20acerca%20de%20los%20veh%C3%ADculos%21"
+       target="_blank" rel="noopener" aria-label="Abrir WhatsApp">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.86 11.86 0 0 0 12.02 0C5.4.02.03 5.38 0 12a11.9 11.9 0 0 0 1.62 6L0 24l6.17-1.62A11.96 11.96 0 0 0 12 24h.01C18.63 24 24 18.64 24 12.02c0-3.18-1.24-6.18-3.48-8.54ZM12 22a9.9 9.9 0 0 1-5.05-1.39l-.36-.21-3.66.96.98-3.56-.23-.37A10 10 0 1 1 12 22Zm5.54-7.46c-.3-.15-1.77-.87-2.05-.97-.28-.1-.48-.15-.68 0-.2.1-.33.32-.45.52-.13.2-.27.42-.47.43-.2 0-.52-.09-1.01-.31a8.38 8.38 0 0 1-2.46-1.69 8.15 8.15 0 0 1-1.56-2.06c-.2-.39-.22-.62-.02-.86.18-.22.4-.34.62-.47.2-.12.4-.24.52-.44.13-.2.07-.47 0-.68-.07-.2-.58-1.41-.8-1.94-.2-.52-.41-.45-.58-.46l-.5-.01c-.18 0-.46.07-.7.32-.24.24-.92.9-.92 2.2 0 1.3.95 2.56 1.08 2.73.13.18 1.87 2.97 4.54 4.06.64.28 1.14.45 1.53.58.64.2 1.22.17 1.68.1.51-.08 1.57-.64 1.8-1.26.22-.63.22-1.17.15-1.28-.08-.11-.27-.18-.57-.33Z"/></svg>
+      WhatsApp
+    </a>
   </div>
-
-  <!-- App: Stock + Lead -->
-  <script>
-  (function(){
-    const { SITE_ORIGIN } = window.__APP_CONFIG__;
-    const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__;
-    const BASE = `${SUPABASE_URL}/rest/v1`;
-    const ANON = SUPABASE_ANON_KEY;
-
-    const grid = document.getElementById('stock-grid');
-    const FALLBACK = '/img/fallback_car.jpg';
-
-    function coverOf(rec){
-      if (rec.cover) return rec.cover;
-      if (Array.isArray(rec.imagenes) && rec.imagenes.length) return rec.imagenes[0];
-      if (typeof rec.imagenes === 'string') {
-        const m = rec.imagenes.match(/^{"?(.+?)"?}$/);
-        return m ? m[1] : rec.imagenes;
-      }
-      return null;
-    }
-    const sanitizeHTML = s => (s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-
-    async function fetchJSON(url){
-      const res = await fetch(url, { headers:{ apikey: ANON, Authorization: `Bearer ${ANON}` }});
-      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-      return res.json();
-    }
-
-    async function fetchCars(){
-      const selView = 'id,marca,modelo,version,anio,km,combustible,caja,cover,precio_objetivo,created_at,estado_publicacion';
-      const urlView = `${BASE}/cars_with_cover`
-        + `?select=${encodeURIComponent(selView)}`
-        + `&order=created_at.desc&limit=12`
-        + `&or=${encodeURIComponent('(estado_publicacion.eq.publicado,estado_publicacion.eq.disponible,estado_publicacion.is.null)')}`;
-
-      try {
-        const data = await fetchJSON(urlView);
-        if (Array.isArray(data) && data.length) return data;
-        console.warn("[HOME] 'cars_with_cover' vacío, paso a 'cars'.");
-      } catch(e){
-        console.warn("[HOME] view falló, paso a 'cars':", e.message);
-      }
-
-      const sel = 'id,marca,modelo,version,anio,km,combustible,caja,imagenes,precio_objetivo,created_at,estado_publicacion';
-      const url = `${BASE}/cars?select=${encodeURIComponent(sel)}&order=created_at.desc&limit=12`;
-      return fetchJSON(url);
-    }
-
-    function render(cars){
-      grid.innerHTML = cars.map(c => {
-        const titulo = `${c.marca ?? ''} ${c.modelo ?? ''} ${c.anio ?? ''}`.trim();
-        const img    = coverOf(c) || FALLBACK;
-        const km     = c.km != null ? `${Number(c.km).toLocaleString('es-ES')} km · ` : '';
-        const sub    = `${km}${c.combustible ?? '-'} · ${c.caja ?? '-'}`;
-        const price  = c.precio_objetivo != null ? `${Number(c.precio_objetivo).toLocaleString('es-ES')} €` : 'Bajo pedido';
-        return `
-          <article class="card" role="listitem">
-            <a href="car.html?id=${encodeURIComponent(c.id)}" aria-label="Ver ${sanitizeHTML(titulo)}">
-              <img src="${img}" alt="${sanitizeHTML(titulo)}" loading="lazy" decoding="async"
-                   referrerpolicy="no-referrer"
-                   onerror="this.onerror=null;this.src='${FALLBACK}'">
-            </a>
-            <div style="padding:10px">
-              <b style="color:#fff">${sanitizeHTML(titulo)}</b><br>
-              <span>${sanitizeHTML(sub)}</span><br>
-              <span class="tag" style="color:#E5E7EB">${sanitizeHTML(price)}</span>
-            </div>
-          </article>`;
-      }).join('');
-    }
-
-    (async () => {
-      try{
-        if (!grid) return;
-        grid.innerHTML = "<p style='color:var(--muted)'>Cargando coches…</p>";
-        const cars = await fetchCars();
-        if (!cars.length){ grid.innerHTML = "<p style='color:var(--muted)'>No hay coches publicados ahora mismo.</p>"; return; }
-        render(cars);
-      }catch(e){
-        console.error(e);
-        grid.innerHTML = "<p style='color:#FCA5A5'>Error cargando coches.</p>";
-      }
-    })();
-
-    /* ===== Envío del formulario de contacto (HOME) ===== */
-    const formEl = document.getElementById('contact-form');
-    formEl?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const fd = new FormData(formEl);
-
-      // Honeypot
-      if ((fd.get('company') || '').toString().trim()) return;
-
-      const payload = {
-        nombre: (fd.get('nombre')||'').toString().trim(),
-        email:  (fd.get('email') ||'').toString().trim(),
-        telefono: (fd.get('telefono')||'').toString().trim(),
-        mensaje: (fd.get('mensaje')||'').toString().trim(),
-        coche_interes: (fd.get('coche_interes')||'').toString().trim() || null,
-        car_id: (fd.get('car_id')||'').toString().trim() || null,
-        page_url: location.href,
-        user_agent: navigator.userAgent
-      };
-
-      const statusEl = document.getElementById('form-status');
-      const submitBtn = document.getElementById('submit-btn');
-
-      // Validación con utils.js
-      if (!Validator.required(payload.nombre, 2)) { statusEl.textContent = 'Nombre inválido.'; return; }
-      if (!Validator.email(payload.email)) { statusEl.textContent = 'Email inválido.'; return; }
-      if (payload.telefono && !Validator.phone(payload.telefono)) { statusEl.textContent = 'Teléfono inválido.'; return; }
-      if (!Validator.required(payload.mensaje, 10)) { statusEl.textContent = 'Mensaje demasiado corto.'; return; }
-
-      statusEl.textContent = 'Enviando…';
-      submitBtn.disabled = true;
-
-      try {
-        const res = await fetch('/api/notify-lead', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify(payload)
-        });
-        if (!res.ok) throw new Error('bad_status');
-        statusEl.textContent = '¡Gracias! Te contactaremos en breve.';
-        formEl.reset();
-        notify?.success?.('Lead enviado correctamente');
-      } catch (err) {
-        console.error(err);
-        statusEl.textContent = 'Error enviando lead.';
-        notify?.error?.('No se pudo enviar el formulario');
-      } finally {
-        submitBtn.disabled = false;
-      }
-    });
-  })();
-  </script>
-
-  <!-- Menú (solo X cierra) -->
-  <script>
-    (() => {
-      const toggleBtn = document.getElementById('nav-toggle');
-      const drawer    = document.getElementById('mobile-drawer');
-      const closeBtn  = drawer?.querySelector('.drawer-close');
-      if (!toggleBtn || !drawer) return;
-
-      const focusableSel = ['a[href]','button:not([disabled])','input','select','textarea','[tabindex]:not([tabindex="-1"])'].join(',');
-      let lastFocused = null;
-
-      const open = () => {
-        lastFocused = document.activeElement;
-        drawer.classList.add('open');
-        document.body.classList.add('nav-open');
-        toggleBtn.setAttribute('aria-expanded','true');
-        drawer.querySelector(focusableSel)?.focus({preventScroll:true});
-      };
-      const close = () => {
-        drawer.classList.remove('open');
-        document.body.classList.remove('nav-open');
-        toggleBtn.setAttribute('aria-expanded','false');
-        lastFocused?.focus?.({preventScroll:true});
-      };
-      const isOpen = () => drawer.classList.contains('open');
-
-      toggleBtn.addEventListener('click', () => isOpen() ? close() : open(), { passive:true });
-      closeBtn?.addEventListener('click', close, { passive:true });
-
-      // Accesibilidad: trap focus + Escape
-      window.addEventListener('keydown', (e) => {
-        if (!isOpen()) return;
-        if (e.key === 'Escape') { e.preventDefault(); close(); }
-        if (e.key === 'Tab') {
-          const f = [...drawer.querySelectorAll(focusableSel)];
-          if (!f.length) return;
-          const first = f[0], last = f[f.length-1];
-          if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
-          else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
-        }
-      });
-
-      // Resets bfcache/iOS
-      const resetDrawerState = () => { drawer.classList.remove('open'); document.body.classList.remove('nav-open'); toggleBtn.setAttribute('aria-expanded','false'); };
-      window.addEventListener('pageshow', resetDrawerState);
-      window.addEventListener('pagehide', resetDrawerState);
-      window.addEventListener('beforeunload', resetDrawerState);
-      document.addEventListener('visibilitychange', () => { if (document.hidden) resetDrawerState(); });
-    })();
-  </script>
 </body>
 </html>
