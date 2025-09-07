@@ -20,18 +20,18 @@
   <meta name="twitter:description" content="Vehículos verificados, importación rápida y garantía europea.">
   <meta name="twitter:image" id="twitter-image" content="https://myautoimport.es/og-image.jpg">
 
-  <!-- Favicons / PWA (sin duplicados) -->
+  <!-- Favicons / PWA -->
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="alternate icon" href="/favicon.ico" sizes="any">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest?v=2">
   <meta name="theme-color" content="#0f172a">
 
-  <!-- Config + Auth -->
+  <!-- Config + Auth (sin defer para que exista __APP_CONFIG__) -->
   <script src="/api/public-config.js"></script>
   <script type="module" src="/js/auth-widget.js"></script>
 
-  <!-- Canonical/OG dinámico con SITE_ORIGIN -->
+  <!-- Canonical/OG dinámico -->
   <script>
     (function () {
       const cfg = window.__APP_CONFIG__ || {};
@@ -45,12 +45,12 @@
     })();
   </script>
 
-  <!-- Fonts -->
+  <!-- Fuentes -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-  <!-- CSS global -->
+  <!-- CSS -->
   <link rel="stylesheet" href="/css/main.css">
 
   <!-- Utils -->
@@ -167,7 +167,23 @@
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
+    // Espera defensiva a la config
+    const waitForConfig = async (ms=3000) => {
+      const t0 = performance.now();
+      while (!window.__APP_CONFIG__ && performance.now()-t0 < ms) {
+        await new Promise(r=>setTimeout(r,50));
+      }
+      return window.__APP_CONFIG__;
+    };
+    const cfg = await waitForConfig();
+    if (!cfg?.SUPABASE_URL || !cfg?.SUPABASE_ANON_KEY) {
+      console.error("Falta configuración pública de Supabase");
+      document.getElementById('results').innerHTML =
+        '<p style="color:#FCA5A5">Error de configuración.</p>';
+      throw new Error("Missing __APP_CONFIG__");
+    }
+
+    const { SUPABASE_URL, SUPABASE_ANON_KEY } = cfg;
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const $ = s => document.querySelector(s);
@@ -212,9 +228,9 @@
     function cardHTML(c){
       const titulo = `${c.marca ?? ""} ${c.modelo ?? ""} ${c.anio ?? ""}`.trim();
       const imgSrc = c.cover || (Array.isArray(c.imagenes) && c.imagenes[0]) || FALLBACK;
-      const km = (c.km ?? 0).toLocaleString("es-ES");
-      const resumen = [km && `${km} km`, c.combustible, c.caja].filter(Boolean).join(" · ");
-      const precio = c.precio_objetivo ? `${Number(c.precio_objetivo).toLocaleString("es-ES")} €` : "Bajo pedido";
+      const km = c.km != null ? `${Number(c.km).toLocaleString("es-ES")} km` : "";
+      const resumen = [km, c.combustible, c.caja].filter(Boolean).join(" · ");
+      const precio = c.precio_objetivo != null ? `${Number(c.precio_objetivo).toLocaleString("es-ES")} €` : "Bajo pedido";
       return `
         <article class="card">
           <a href="/car.html?id=${encodeURIComponent(c.id)}" aria-label="Ver ${sanitizeHTML(titulo)}">
@@ -230,11 +246,8 @@
         </article>`;
     }
 
-    async function fetchFromTable(params){
-      let q = supabase.from("cars")
-        .select("id, marca, modelo, anio, km, combustible, caja, imagenes, cover, precio_objetivo, created_at, estado_publicacion", { count: "exact" })
-        .in("estado_publicacion", ["publicado","disponible"]);
-
+    // Builder común de consulta con filtros
+    const applyFilters = (q, params) => {
       if(params.q){
         const like = `%${params.q}%`;
         q = q.or(`marca.ilike.${like},modelo.ilike.${like},version.ilike.${like}`);
@@ -245,30 +258,56 @@
       if(params.anio_max) q = q.lte("anio", Number(params.anio_max));
       if(params.precio_max) q = q.lte("precio_objetivo", Number(params.precio_max));
 
+      // Orden
       const [field, dir] = (params.orden || "created_at.desc").split(".");
       q = q.order(field, { ascending: dir !== "desc", nullsFirst:false });
 
+      // Publicación (permite null)
+      q = q.or('estado_publicacion.eq.publicado,estado_publicacion.eq.disponible,estado_publicacion.is.null');
+      return q;
+    };
+
+    async function fetchFrom(source, select, params){
       const from = (currentPage-1)*PAGE;
       const to = from + PAGE - 1;
+      let q = supabase.from(source).select(select, { count: "exact" });
+      q = applyFilters(q, params);
       return q.range(from, to);
     }
 
     async function fetchData(){
       const params = readParams();
       currentPage = Math.max(1, Number(params.page) || 1);
-
       results.innerHTML = `<p style="color:var(--muted)">Cargando resultados…</p>`;
 
-      const { data, error, count } = await fetchFromTable(params);
+      // 1) Intentar vista con cover
+      let data, error, count;
+      ({ data, error, count } = await fetchFrom(
+        "cars_with_cover",
+        "id, marca, modelo, anio, km, combustible, caja, imagenes, cover, precio_objetivo, created_at, estado_publicacion",
+        params
+      ));
+
+      // 2) Si falla (vista no existe o columnas distintas), fallback a tabla cars
+      if (error) {
+        console.warn("[stock] fallo en cars_with_cover → intento cars:", error.message || error);
+        ({ data, error, count } = await fetchFrom(
+          "cars",
+          "id, marca, modelo, anio, km, combustible, caja, imagenes, precio_objetivo, created_at, estado_publicacion",
+          params
+        ));
+      }
 
       if(error){
-        console.error(error);
+        console.error("[stock] error final:", error);
         results.innerHTML = `<p style="color:#FCA5A5">Error cargando el stock.</p>`;
+        pageInfo.textContent = "";
+        prevBtn.disabled = nextBtn.disabled = true;
         return;
       }
 
       total = count ?? 0;
-      results.innerHTML = data?.length
+      results.innerHTML = (data && data.length)
         ? data.map(cardHTML).join("")
         : `<p style="color:var(--muted)">No hay resultados con estos filtros.</p>`;
 
@@ -305,7 +344,7 @@
     // Inicial
     fetchData();
 
-    /* Drawer sólo móvil + accesibilidad */
+    /* Drawer móvil + accesibilidad */
     (() => {
       const toggleBtn = document.getElementById('nav-toggle');
       const drawer    = document.getElementById('mobile-drawer');
@@ -332,18 +371,6 @@
 
       toggleBtn.addEventListener('click', () => isOpen() ? close() : open(), { passive:true });
       closeBtn?.addEventListener('click', close, { passive:true });
-
-      window.addEventListener('keydown', (e) => {
-        if (!isOpen()) return;
-        if (e.key === 'Escape') { e.preventDefault(); close(); }
-        if (e.key === 'Tab') {
-          const f = [...drawer.querySelectorAll(focusableSel)];
-          if (!f.length) return;
-          const first = f[0], last = f[f.length-1];
-          if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
-          else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
-        }
-      });
 
       const reset = () => { drawer.classList.remove('open'); document.body.classList.remove('nav-open'); toggleBtn.setAttribute('aria-expanded','false'); };
       window.addEventListener('pageshow', reset);
