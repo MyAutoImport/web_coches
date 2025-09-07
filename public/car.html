@@ -8,7 +8,7 @@
   <meta name="description" id="meta-description" content="Ficha completa del vehículo premium importado: fotos, vídeo, especificaciones, extras, precio y contacto.">
   <meta name="robots" content="index,follow">
 
-  <!-- Open Graph / Twitter (se completan dinámicamente) -->
+  <!-- Open Graph / Twitter -->
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="My Auto Import">
   <meta property="og:title" id="og-title" content="Coche premium — Detalle">
@@ -25,18 +25,18 @@
   <meta property="product:price:amount" id="meta-price-amount" content="">
   <meta property="product:price:currency" content="EUR">
 
-  <!-- Favicons / PWA (sin duplicados) -->
+  <!-- Favicons / PWA -->
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="alternate icon" href="/favicon.ico" sizes="any">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest?v=2">
   <meta name="theme-color" content="#0f172a">
 
-  <!-- Config pública + Auth (no bloquean render) -->
+  <!-- Config pública + Auth -->
   <script src="/api/public-config.js"></script>
   <script type="module" src="/js/auth-widget.js"></script>
 
-  <!-- JSON-LD (se rellena en runtime) -->
+  <!-- JSON-LD -->
   <script id="car-jsonld" type="application/ld+json"></script>
 
   <!-- Fuentes -->
@@ -44,7 +44,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-  <!-- Estilos globales -->
+  <!-- CSS -->
   <link rel="stylesheet" href="/css/main.css">
 
   <!-- Utils -->
@@ -110,7 +110,6 @@
     </form>
   </main>
 
-  <!-- Sticky CTA móvil -->
   <div class="sticky-cta hidden" id="sticky-cta" aria-label="Acción rápida">
     <div style="display:flex;flex-direction:column;">
       <b id="sticky-title">Coche</b>
@@ -119,11 +118,26 @@
     <a href="#contact-form" class="cta-btn">Solicitar info</a>
   </div>
 
-  <!-- App: carga de coche + galería + lead -->
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    const { SUPABASE_URL, SUPABASE_ANON_KEY, SITE_ORIGIN } = window.__APP_CONFIG__ || {};
+    // === Espera defensiva por la config pública ===
+    const waitForConfig = async (ms=3000) => {
+      const t0 = performance.now();
+      while (!window.__APP_CONFIG__ && performance.now()-t0 < ms) {
+        await new Promise(r=>setTimeout(r,50));
+      }
+      return window.__APP_CONFIG__;
+    };
+    const cfg = await waitForConfig();
+    if (!cfg?.SUPABASE_URL || !cfg?.SUPABASE_ANON_KEY) {
+      console.error("Falta configuración de Supabase en public-config.js");
+      document.getElementById('car-container').innerHTML =
+        '<p style="padding:24px;color:#FCA5A5">Error de configuración. Recarga la página.</p>';
+      throw new Error("Missing __APP_CONFIG__");
+    }
+
+    const { SUPABASE_URL, SUPABASE_ANON_KEY, SITE_ORIGIN } = cfg;
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const $ = sel => document.querySelector(sel);
@@ -133,153 +147,164 @@
     const escapeHTML = s => (s ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
     async function loadCar() {
-      if (!carId) { document.body.innerHTML = '<p style="padding:24px">Falta el parámetro <b>id</b>.</p>'; return; }
+      try{
+        if (!carId) { document.body.innerHTML = '<p style="padding:24px">Falta el parámetro <b>id</b>.</p>'; return; }
 
-      const { data, error } = await supabase
-        .from('cars')
-        .select(`id, marca, modelo, version, anio, km, combustible, caja,
-                 imagenes, precio_objetivo, descripcion, extras, video_url, estado_publicacion`)
-        .eq('id', carId)
-        .in('estado_publicacion', ["publicado", "disponible"])
-        .single();
+        // Permite publicado, disponible o null
+        let q = supabase
+          .from('cars')
+          .select(`id, marca, modelo, version, anio, km, combustible, caja,
+                   imagenes, precio_objetivo, descripcion, extras, video_url, estado_publicacion`)
+          .eq('id', carId)
+          .limit(1);
 
-      if (error || !data) { document.body.innerHTML = '<p style="padding:24px">Coche no encontrado.</p>'; return; }
+        // filtro OR compatible con RLS
+        q = q.or('estado_publicacion.eq.publicado,estado_publicacion.eq.disponible,estado_publicacion.is.null');
 
-      const title = `${data.marca ?? ''} ${data.modelo ?? ''}${data.version ? ' ' + data.version : ''} ${data.anio ?? ''}`.trim();
-      $('#car-title').textContent = title;
-      document.title = `${title} — Detalle del vehículo`;
+        const { data, error } = await q.single();
 
-      const desc = `Coche ${title}, ${data.km?.toLocaleString('es-ES')} km, ${data.combustible ?? '-'}, ${data.caja ?? '-'}, precio ${data.precio_objetivo ? Number(data.precio_objetivo).toLocaleString('es-ES')+"€" : "Bajo pedido"}.`;
-      $('#meta-description').setAttribute("content", desc);
-      $('#og-title').setAttribute("content", title);
-      $('#og-description').setAttribute("content", data.descripcion || "Vehículo premium disponible.");
-      $('#twitter-title').setAttribute("content", title);
-      $('#twitter-description').setAttribute("content", data.descripcion || "Vehículo premium disponible.");
+        if (error || !data) { document.body.innerHTML = '<p style="padding:24px">Coche no encontrado.</p>'; return; }
 
-      const site = (SITE_ORIGIN || location.origin).replace(/\/$/, "");
-      const canonicalHref = `${site}/car.html?id=${encodeURIComponent(carId)}`;
-      document.getElementById('canonical')?.setAttribute('href', canonicalHref);
-      document.getElementById('og-url')?.setAttribute('content', canonicalHref);
+        const title = `${data.marca ?? ''} ${data.modelo ?? ''}${data.version ? ' ' + data.version : ''} ${data.anio ?? ''}`.trim();
+        $('#car-title').textContent = title;
+        document.title = `${title} — Detalle del vehículo`;
 
-      if (data.imagenes?.[0]) {
-        $('#og-image').setAttribute("content", data.imagenes[0]);
-        $('#twitter-image').setAttribute("content", data.imagenes[0]);
-      } else {
-        const fallbackOG = `${site}/og-car.jpg`;
-        $('#og-image').setAttribute("content", fallbackOG);
-        $('#twitter-image').setAttribute("content", fallbackOG);
-      }
+        const desc = `Coche ${title}, ${data.km?.toLocaleString('es-ES')} km, ${data.combustible ?? '-'}, ${data.caja ?? '-'}, precio ${data.precio_objetivo ? Number(data.precio_objetivo).toLocaleString('es-ES')+"€" : "Bajo pedido"}.`;
+        $('#meta-description').setAttribute("content", desc);
+        $('#og-title').setAttribute("content", title);
+        $('#og-description').setAttribute("content", data.descripcion || "Vehículo premium disponible.");
+        $('#twitter-title').setAttribute("content", title);
+        $('#twitter-description').setAttribute("content", data.descripcion || "Vehículo premium disponible.");
 
-      const priceMeta = document.getElementById('meta-price-amount');
-      if (priceMeta) priceMeta.setAttribute('content', data.precio_objetivo ? String(Number(data.precio_objetivo)) : "");
+        const site = (SITE_ORIGIN || location.origin).replace(/\/$/, "");
+        const canonicalHref = `${site}/car.html?id=${encodeURIComponent(carId)}`;
+        document.getElementById('canonical')?.setAttribute('href', canonicalHref);
+        document.getElementById('og-url')?.setAttribute('content', canonicalHref);
 
-      const jsonld = {
-        "@context":"https://schema.org","@type":"Product",
-        "name": title, "description": data.descripcion || "Vehículo premium disponible.",
-        "image": data.imagenes, "brand": data.marca, "model": data.modelo, "sku": data.id,
-        "offers": {"@type":"Offer","price": data.precio_objetivo || "0","priceCurrency":"EUR","availability":"https://schema.org/InStock","url": canonicalHref}
-      };
-      document.getElementById("car-jsonld").textContent = JSON.stringify(jsonld);
-
-      /* Galería */
-      const images = Array.isArray(data.imagenes) ? data.imagenes : [];
-      const gallery = $('#car-gallery');
-
-      if (!images.length) {
-        gallery.innerHTML = '<p style="padding:12px;color:#ddd">Sin imágenes</p>';
-      } else {
-        gallery.innerHTML = `
-          <div class="slider" aria-label="Carrusel de imágenes">
-            <div class="slider-track">
-              ${images.map((src,i) => `
-                <img class="slide"
-                     src="${src}"
-                     alt="${escapeHTML(title)} — imagen ${i+1}"
-                     ${i===0?'loading="eager" fetchpriority="high"':'loading="lazy"'}
-                     decoding="async" width="1200" height="800">`).join('')}
-            </div>
-            <button class="nav-btn nav-prev" aria-label="Imagen anterior">
-              <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
-            <button class="nav-btn nav-next" aria-label="Imagen siguiente">
-              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
-            <div class="dots" aria-label="Indicadores">
-              ${images.map((_,i)=>`<span class="dot" role="button" aria-label="Ver imagen ${i+1}" data-i="${i}"></span>`).join('')}
-            </div>
-            <div class="counter" id="counter">1 / ${images.length}</div>
-          </div>`;
-
-        const track   = gallery.querySelector('.slider-track');
-        const prevBtn = gallery.querySelector('.nav-prev');
-        const nextBtn = gallery.querySelector('.nav-next');
-        const dots    = [...gallery.querySelectorAll('.dot')];
-        const counter = document.getElementById('counter');
-
-        let idx = 0; const N = images.length;
-        const set = (i) => {
-          idx = (i + N) % N;
-          track.style.transform = `translateX(-${idx * 100}%)`;
-          dots.forEach((d,k)=>d.classList.toggle('active', k === idx));
-          if (counter) counter.textContent = `${idx+1} / ${N}`;
-        };
-
-        let timer=null;
-        const start = ()=>{ if (N<=1) return; clearInterval(timer); timer=setInterval(()=>set(idx+1), 4000); };
-        const stop  = ()=>{ if (timer) clearInterval(timer); timer=null; };
-
-        prevBtn.onclick = ()=>{ stop(); set(idx-1); start(); };
-        nextBtn.onclick = ()=>{ stop(); set(idx+1); start(); };
-        if (N<=1){ prevBtn.disabled = true; nextBtn.disabled = true; }
-        dots.forEach(d => d.onclick = ()=>{ stop(); set(+d.dataset.i); start(); };
-
-        // Gestos táctiles
-        let startX=0, dx=0, touching=false;
-        const onDown = (e)=>{touching=true; startX=(e.touches?.[0].clientX ?? e.clientX); stop();};
-        const onMove = (e)=>{if(!touching) return; const x=(e.touches?.[0].clientX ?? e.clientX); dx=x-startX;};
-        const onUp   = ()=>{if(!touching) return; if(Math.abs(dx)>50) (dx<0?set(idx+1):set(idx-1)); touching=false; dx=0; start();};
-        gallery.addEventListener('touchstart', onDown, {passive:true});
-        gallery.addEventListener('touchmove',  onMove, {passive:true});
-        gallery.addEventListener('touchend',   onUp);
-
-        set(0); start();
-      }
-
-      /* Vídeo */
-      const videoBox = $('#car-video');
-      if (data.video_url && data.video_url.trim()) {
-        let url = data.video_url.trim();
-        if (url.includes('watch?v=')) url = url.replace('watch?v=', 'embed/');
-        if (url.endsWith('.mp4')) {
-          videoBox.innerHTML = `<video src="${url}" controls style="width:100%;border-radius:16px;max-height:480px;box-shadow:var(--shadow)"></video>`;
+        if (data.imagenes?.[0]) {
+          $('#og-image').setAttribute("content", data.imagenes[0]);
+          $('#twitter-image').setAttribute("content", data.imagenes[0]);
         } else {
-          videoBox.innerHTML = `<iframe src="${url}" allowfullscreen loading="lazy"></iframe>`;
+          const fallbackOG = `${site}/og-car.jpg`;
+          $('#og-image').setAttribute("content", fallbackOG);
+          $('#twitter-image').setAttribute("content", fallbackOG);
         }
-      } else { videoBox.innerHTML = ''; }
 
-      /* Specs + Descripción */
-      const specsEl = $('#car-specs');
-      specsEl.innerHTML = `
-        <p><b>Kilómetros:</b> ${data.km?.toLocaleString('es-ES') ?? '-'}</p>
-        <p><b>Combustible:</b> ${escapeHTML(data.combustible) ?? '-'}</p>
-        <p><b>Caja:</b> ${escapeHTML(data.caja) ?? '-'}</p>
-        <p><b>Precio:</b> ${data.precio_objetivo ? Number(data.precio_objetivo).toLocaleString('es-ES')+' €' : 'Bajo pedido'}</p>
-        ${data.extras ? `<p><b>Extras:</b> ${escapeHTML(data.extras)}</p>` : ''}
-        <h3>Descripción</h3>
-        <div class="desc">${escapeHTML((data.descripcion || 'Sin descripción'))}</div>
-      `;
+        const priceMeta = document.getElementById('meta-price-amount');
+        if (priceMeta) priceMeta.setAttribute('content', data.precio_objetivo ? String(Number(data.precio_objetivo)) : "");
 
-      /* Sticky CTA */
-      const bar = document.getElementById('sticky-cta');
-      const priceEl = document.getElementById('sticky-price');
-      const titleEl = document.getElementById('sticky-title');
-      titleEl.textContent = title;
-      priceEl.textContent = data.precio_objetivo ? `${Number(data.precio_objetivo).toLocaleString('es-ES')} €` : 'Bajo pedido';
-      const form = document.getElementById('contact-form');
-      const io = new IntersectionObserver((entries)=>{ bar.classList.toggle('hidden', entries[0].isIntersecting); }, { threshold: 0.35 });
-      io.observe(form);
+        const jsonld = {
+          "@context":"https://schema.org","@type":"Product",
+          "name": title, "description": data.descripcion || "Vehículo premium disponible.",
+          "image": data.imagenes, "brand": data.marca, "model": data.modelo, "sku": data.id,
+          "offers": {"@type":"Offer","price": data.precio_objetivo || "0","priceCurrency":"EUR","availability":"https://schema.org/InStock","url": canonicalHref}
+        };
+        document.getElementById("car-jsonld").textContent = JSON.stringify(jsonld);
 
-      $('#coche_interes').value = title;
+        /* Galería */
+        const images = Array.isArray(data.imagenes) ? data.imagenes : [];
+        const gallery = $('#car-gallery');
+
+        if (!images.length) {
+          gallery.innerHTML = '<p style="padding:12px;color:#ddd">Sin imágenes</p>';
+        } else {
+          gallery.innerHTML = `
+            <div class="slider" aria-label="Carrusel de imágenes">
+              <div class="slider-track">
+                ${images.map((src,i) => `
+                  <img class="slide"
+                       src="${src}"
+                       alt="${escapeHTML(title)} — imagen ${i+1}"
+                       ${i===0?'loading="eager" fetchpriority="high"':'loading="lazy"'}
+                       decoding="async" width="1200" height="800">`).join('')}
+              </div>
+              <button class="nav-btn nav-prev" aria-label="Imagen anterior">
+                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="nav-btn nav-next" aria-label="Imagen siguiente">
+                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <div class="dots" aria-label="Indicadores">
+                ${images.map((_,i)=>`<span class="dot" role="button" aria-label="Ver imagen ${i+1}" data-i="${i}"></span>`).join('')}
+              </div>
+              <div class="counter" id="counter">1 / ${images.length}</div>
+            </div>`;
+
+          const track   = gallery.querySelector('.slider-track');
+          const prevBtn = gallery.querySelector('.nav-prev');
+          const nextBtn = gallery.querySelector('.nav-next');
+          const dots    = [...gallery.querySelectorAll('.dot')];
+          const counter = document.getElementById('counter');
+
+          let idx = 0; const N = images.length;
+          const set = (i) => {
+            idx = (i + N) % N;
+            track.style.transform = `translateX(-${idx * 100}%)`;
+            dots.forEach((d,k)=>d.classList.toggle('active', k === idx));
+            if (counter) counter.textContent = `${idx+1} / ${N}`;
+          };
+
+          let timer=null;
+          const start = ()=>{ if (N<=1) return; clearInterval(timer); timer=setInterval(()=>set(idx+1), 4000); };
+          const stop  = ()=>{ if (timer) clearInterval(timer); timer=null; };
+
+          prevBtn.onclick = ()=>{ stop(); set(idx-1); start(); };
+          nextBtn.onclick = ()=>{ stop(); set(idx+1); start(); };
+          if (N<=1){ prevBtn.disabled = true; nextBtn.disabled = true; }
+          dots.forEach(d => { d.onclick = () => { stop(); set(+d.dataset.i); start(); }; });  <!-- FIX: paréntesis correcto -->
+
+          // Gestos táctiles
+          let startX=0, dx=0, touching=false;
+          const onDown = (e)=>{touching=true; startX=(e.touches?.[0].clientX ?? e.clientX); stop();};
+          const onMove = (e)=>{if(!touching) return; const x=(e.touches?.[0].clientX ?? e.clientX); dx=x-startX;};
+          const onUp   = ()=>{if(!touching) return; if(Math.abs(dx)>50) (dx<0?set(idx+1):set(idx-1)); touching=false; dx=0; start();};
+          gallery.addEventListener('touchstart', onDown, {passive:true});
+          gallery.addEventListener('touchmove',  onMove, {passive:true});
+          gallery.addEventListener('touchend',   onUp);
+
+          set(0); start();
+        }
+
+        /* Vídeo */
+        const videoBox = $('#car-video');
+        if (data.video_url && data.video_url.trim()) {
+          let url = data.video_url.trim();
+          if (url.includes('watch?v=')) url = url.replace('watch?v=', 'embed/');
+          if (url.endsWith('.mp4')) {
+            videoBox.innerHTML = `<video src="${url}" controls style="width:100%;border-radius:16px;max-height:480px;box-shadow:var(--shadow)"></video>`;
+          } else {
+            videoBox.innerHTML = `<iframe src="${url}" allowfullscreen loading="lazy"></iframe>`;
+          }
+        } else { videoBox.innerHTML = ''; }
+
+        /* Specs + Descripción */
+        const specsEl = $('#car-specs');
+        specsEl.innerHTML = `
+          <p><b>Kilómetros:</b> ${data.km?.toLocaleString('es-ES') ?? '-'}</p>
+          <p><b>Combustible:</b> ${escapeHTML(data.combustible) ?? '-'}</p>
+          <p><b>Caja:</b> ${escapeHTML(data.caja) ?? '-'}</p>
+          <p><b>Precio:</b> ${data.precio_objetivo ? Number(data.precio_objetivo).toLocaleString('es-ES')+' €' : 'Bajo pedido'}</p>
+          ${data.extras ? `<p><b>Extras:</b> ${escapeHTML(data.extras)}</p>` : ''}
+          <h3>Descripción</h3>
+          <div class="desc">${escapeHTML((data.descripcion || 'Sin descripción'))}</div>
+        `;
+
+        /* Sticky CTA */
+        const bar = document.getElementById('sticky-cta');
+        const priceEl = document.getElementById('sticky-price');
+        const titleEl = document.getElementById('sticky-title');
+        titleEl.textContent = title;
+        priceEl.textContent = data.precio_objetivo ? `${Number(data.precio_objetivo).toLocaleString('es-ES')} €` : 'Bajo pedido';
+        const form = document.getElementById('contact-form');
+        const io = new IntersectionObserver((entries)=>{ bar.classList.toggle('hidden', entries[0].isIntersecting); }, { threshold: 0.35 });
+        io.observe(form);
+
+        $('#coche_interes').value = title;
+      }catch(err){
+        console.error(err);
+        document.getElementById('car-container').innerHTML =
+          '<p style="padding:24px;color:#FCA5A5">Error cargando el coche.</p>';
+      }
     }
     loadCar();
 
