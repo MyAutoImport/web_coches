@@ -21,14 +21,15 @@
   <meta name="twitter:description" content="Vehículos verificados, importación rápida y garantía europea. Solicita tu coche a medida.">
   <meta name="twitter:image" id="twitter-image" content="https://myautoimport.es/og-image.jpg">
 
-  <!-- Favicons / PWA -->
-  <link rel="icon" href="/favicon.ico" sizes="any">
+  <!-- Favicons / PWA (sin duplicados) -->
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="alternate icon" href="/favicon.ico" sizes="any">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest?v=2">
   <meta name="theme-color" content="#0f172a">
-  
-  <script src="/api/public-config.js"></script>
+
+  <!-- Config + Auth -->
+  <script src="/api/public-config.js" defer></script>
   <script type="module" src="/js/auth-widget.js"></script>
 
   <!-- JSON-LD AutoDealer -->
@@ -50,12 +51,8 @@
     (function () {
       const cfg = window.__APP_CONFIG__ || {};
       const site = (cfg.SITE_ORIGIN || location.origin).replace(/\/$/, "");
-
-      // canonical y og:url a la raíz
       document.getElementById('canonical')?.setAttribute('href', `${site}/`);
       document.getElementById('og-url')?.setAttribute('content', `${site}/`);
-
-      // imágenes OG/Twitter (fallback)
       const ogImg = document.getElementById('og-image');
       if (ogImg) ogImg.setAttribute('content', `${site}/og-image.jpg`);
       const twImg = document.getElementById('twitter-image') || document.querySelector('meta[name="twitter:image"]');
@@ -68,27 +65,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-  <!-- CSS externo -->
+  <!-- CSS -->
   <link rel="stylesheet" href="/css/main.css">
 
-  <!-- Utils (defer) -->
-  <script src="js/utils.js" defer></script>
-  
+  <!-- Utils -->
+  <script src="/js/utils.js" defer></script>
+
+  <!-- Preload del LCP del hero con variantes -->
+  <link rel="preload" as="image"
+        href="/img/img_car_960.jpg"
+        imagesrcset="/img/img_car_640.jpg 640w, /img/img_car_960.jpg 960w, /img/img_car_1440.jpg 1440w"
+        imagesizes="(max-width: 960px) 100vw, 50vw"
+        fetchpriority="high">
+
   <!-- Cloudflare Web Analytics -->
-  <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "6bacc6c3cd2f482793c643c5fe8df0b7"}'></script><!-- End Cloudflare Web Analytics -->
-  
-  <link rel="manifest" href="/site.webmanifest" crossorigin="anonymous" />
-
-  <!-- Favicon moderno (SVG) -->
-  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-
-  <!-- Fallback clásico (.ico); quítalo si no vas a incluir el archivo -->
-  <link rel="alternate icon" href="/favicon.ico" sizes="any" />
-
-  <!-- Icono Apple / PWA -->
-  <link rel="apple-touch-icon" href="/img/icon-192.png" />
-
-  <meta name="theme-color" content="#0b1220" />
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "6bacc6c3cd2f482793c643c5fe8df0b7"}'></script>
 </head>
 <body>
 
@@ -102,7 +93,7 @@
       <nav class="nav-desktop" aria-label="Menú principal">
         <a href="#servicios">Servicios</a>
         <a href="/stock.html">Stock</a>
-		<div id="user-nav" class="user-nav"></div>
+        <div id="user-nav" class="user-nav"></div>
         <a href="#contacto" class="btn primary">Contacto</a>
       </nav>
     </div>
@@ -119,10 +110,10 @@
           <a href="/stock.html" class="drawer-link">Stock</a>
           <a href="#contacto" class="drawer-link btn primary" style="text-align:center;">Contacto</a>
         </nav>
-		
-		<!-- Bloque usuario (móvil) -->
-		<div id="user-nav-mobile" class="drawer-user" aria-label="Estado de sesión"></div>
-		
+
+        <!-- Bloque usuario (móvil) -->
+        <div id="user-nav-mobile" class="drawer-user" aria-label="Estado de sesión"></div>
+
         <div style="height:calc(12px + env(safe-area-inset-bottom,0px))"></div>
       </div>
       <button class="drawer-backdrop" tabindex="-1" aria-hidden="true"></button>
@@ -137,7 +128,14 @@
       <a href="#contacto" class="btn primary">Solicitar información</a>
     </div>
     <div>
-      <img src="/img/img_car.jpg" alt="Ejemplo de coche premium importado" loading="lazy" decoding="async" width="800" height="500">
+      <picture>
+        <source type="image/avif" srcset="/img/img_car_640.avif 640w, /img/img_car_960.avif 960w, /img/img_car_1440.avif 1440w" sizes="(max-width:960px) 100vw, 50vw">
+        <source type="image/webp" srcset="/img/img_car_640.webp 640w, /img/img_car_960.webp 960w, /img/img_car_1440.webp 1440w" sizes="(max-width:960px) 100vw, 50vw">
+        <img src="/img/img_car_960.jpg" alt="Ejemplo de coche premium importado"
+             width="960" height="640" decoding="async" loading="eager" fetchpriority="high"
+             srcset="/img/img_car_640.jpg 640w, /img/img_car_960.jpg 960w, /img/img_car_1440.jpg 1440w"
+             sizes="(max-width:960px) 100vw, 50vw">
+      </picture>
     </div>
   </section>
 
@@ -194,21 +192,19 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z" stroke-linejoin="round" stroke-linecap="round"/></svg>
       Contacto
     </a>
-	
     <a class="secondary"
-		href="https://wa.me/34641338743?text=Buenas%20%F0%9F%91%8B%2C%20vengo%20de%20la%20web%20de%20My%20Auto%20Import.%20Me%20gustar%C3%ADa%20recibir%20informaci%C3%B3n%20acerca%20de%20los%20veh%C3%ADculos%21"
-		target="_blank" rel="noopener" aria-label="Abrir WhatsApp">
-			<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.86 11.86 0 0 0 12.02 0C5.4.02.03 5.38 0 12a11.9 11.9 0 0 0 1.62 6L0 24l6.17-1.62A11.96 11.96 0 0 0 12 24h.01C18.63 24 24 18.64 24 12.02c0-3.18-1.24-6.18-3.48-8.54ZM12 22a9.9 9.9 0 0 1-5.05-1.39l-.36-.21-3.66.96.98-3.56-.23-.37A10 10 0 1 1 12 22Zm5.54-7.46c-.3-.15-1.77-.87-2.05-.97-.28-.1-.48-.15-.68.15-.2.3-.78.97-.95 1.17-.17.2-.35.22-.65.07-1.77-.88-2.93-1.57-4.09-3.57-.31-.53.31-.49.88-1.63.1-.2.05-.37-.03-.52-.08-.15-.68-1.63-.93-2.23-.24-.58-.5-.5-.68-.5-.17 0-.37-.02-.57-.02s-.52.07-.79.37c-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.07 4.49.71.31 1.27.5 1.7.64.71.22 1.36.19 1.88.12.57-.08 1.77-.72 2.02-1.41.25-.69.25-1.28.17-1.41-.07-.13-.27-.2-.57-.35Z"/></svg>
-			WhatsApp
-	</a>
-
+       href="https://wa.me/34641338743?text=Buenas%20%F0%9F%91%8B%2C%20vengo%20de%20la%20web%20de%20My%20Auto%20Import.%20Me%20gustar%C3%ADa%20recibir%20informaci%C3%B3n%20acerca%20de%20los%20veh%C3%ADculos%21"
+       target="_blank" rel="noopener" aria-label="Abrir WhatsApp">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.86 11.86 0 0 0 12.02 0C5.4.02.03 5.38 0 12a11.9 11.9 0 0 0 1.62 6L0 24l6.17-1.62A11.96 11.96 0 0 0 12 24h.01C18.63 24 24 18.64 24 12.02c0-3.18-1.24-6.18-3.48-8.54ZM12 22a9.9 9.9 0 0 1-5.05-1.39l-.36-.21-3.66.96.98-3.56-.23-.37A10 10 0 1 1 12 22Zm5.54-7.46c-.3-.15-1.77-.87-2.05-.97-.28-.1-.48-.15-.68.15-.2.3-.78.97-.95 1.17-.17.2-.35.22-.65.07-1.77-.88-2.93-1.57-4.09-3.57-.31-.53.31-.49.88-1.63.1-.2.05-.37-.03-.52-.08-.15-.68-1.63-.93-2.23-.24-.58-.5-.5-.68-.5-.17 0-.37-.02-.57-.02s-.52.07-.79.37c-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.07 4.49.71.31 1.27.5 1.7.64.71.22 1.36.19 1.88.12.57-.08 1.77-.72 2.02-1.41.25-.69.25-1.28.17-1.41-.07-.13-.27-.2-.57-.35Z"/></svg>
+      WhatsApp
+    </a>
   </div>
 
-  <!-- App: Stock + Lead -->
+  <!-- App: Stock + Lead (igual, con mejoras de fallback y sanitización) -->
   <script>
   (function(){
-    const { SITE_ORIGIN } = window.__APP_CONFIG__;
-    const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__;
+    const { SITE_ORIGIN } = window.__APP_CONFIG__ || {};
+    const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.__APP_CONFIG__ || {};
     const BASE = `${SUPABASE_URL}/rest/v1`;
     const ANON = SUPABASE_ANON_KEY;
 
@@ -263,7 +259,7 @@
           <article class="card" role="listitem">
             <a href="car.html?id=${encodeURIComponent(c.id)}" aria-label="Ver ${sanitizeHTML(titulo)}">
               <img src="${img}" alt="${sanitizeHTML(titulo)}" loading="lazy" decoding="async"
-                   referrerpolicy="no-referrer"
+                   width="400" height="260" referrerpolicy="no-referrer"
                    onerror="this.onerror=null;this.src='${FALLBACK}'">
             </a>
             <div style="padding:10px">
@@ -341,7 +337,7 @@
   })();
   </script>
 
-  <!-- Menú (solo X cierra) -->
+  <!-- Menú (drawer móvil + accesibilidad) -->
   <script>
     (() => {
       const toggleBtn = document.getElementById('nav-toggle');
@@ -383,7 +379,7 @@
         }
       });
 
-      // Resets bfcache/iOS
+      // Resets por navegación/ocultación
       const resetDrawerState = () => { drawer.classList.remove('open'); document.body.classList.remove('nav-open'); toggleBtn.setAttribute('aria-expanded','false'); };
       window.addEventListener('pageshow', resetDrawerState);
       window.addEventListener('pagehide', resetDrawerState);

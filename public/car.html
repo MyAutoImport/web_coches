@@ -8,7 +8,7 @@
   <meta name="description" id="meta-description" content="Ficha completa del vehículo premium importado: fotos, vídeo, especificaciones, extras, precio y contacto.">
   <meta name="robots" content="index,follow">
 
-  <!-- Social -->
+  <!-- Open Graph / Twitter (se completan dinámicamente) -->
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="My Auto Import">
   <meta property="og:title" id="og-title" content="Coche premium — Detalle">
@@ -25,39 +25,33 @@
   <meta property="product:price:amount" id="meta-price-amount" content="">
   <meta property="product:price:currency" content="EUR">
 
-  <!-- Favicons / PWA -->
-  <link rel="icon" href="/favicon.ico" sizes="any">
+  <!-- Favicons / PWA (sin duplicados) -->
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="alternate icon" href="/favicon.ico" sizes="any">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest?v=2">
   <meta name="theme-color" content="#0f172a">
 
-  <!-- Config pública -->
-  <script src="/api/public-config.js"></script>
+  <!-- Config pública + Auth (no bloquean render) -->
+  <script src="/api/public-config.js" defer></script>
   <script type="module" src="/js/auth-widget.js"></script>
 
-  <!-- JSON-LD -->
+  <!-- JSON-LD (se rellena en runtime) -->
   <script id="car-jsonld" type="application/ld+json"></script>
 
-  <!-- Fonts -->
+  <!-- Fuentes -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-  <!-- ✅ Hoja de estilos global -->
+  <!-- Estilos globales -->
   <link rel="stylesheet" href="/css/main.css">
-  
-  <!-- Utils (defer) -->
+
+  <!-- Utils -->
   <script src="/js/utils.js" defer></script>
-  
+
   <!-- Cloudflare Web Analytics -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "6bacc6c3cd2f482793c643c5fe8df0b7"}'></script>
-
-  <link rel="manifest" href="/site.webmanifest" crossorigin="anonymous" />
-  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-  <link rel="alternate icon" href="/favicon.ico" sizes="any" />
-  <link rel="apple-touch-icon" href="/img/icon-192.png" />
-  <meta name="theme-color" content="#0b1220" />
 </head>
 <body>
 
@@ -71,7 +65,7 @@
       <nav class="nav-desktop" aria-label="Menú principal">
         <a href="/#servicios">Servicios</a>
         <a href="/stock.html">Stock</a>
-		<div id="user-nav" class="user-nav"></div>
+        <div id="user-nav" class="user-nav"></div>
         <a href="/#contacto" class="btn primary">Contacto</a>
       </nav>
     </div>
@@ -88,9 +82,7 @@
           <a href="/stock.html" class="drawer-link">Stock</a>
           <a href="/#contacto" class="drawer-link btn primary" style="text-align:center;">Contacto</a>
         </nav>
-		
-		<div id="user-nav-mobile" class="drawer-user" aria-label="Estado de sesión"></div>
-		
+        <div id="user-nav-mobile" class="drawer-user" aria-label="Estado de sesión"></div>
         <div style="height:calc(12px + env(safe-area-inset-bottom,0px))"></div>
       </div>
       <button class="drawer-backdrop" tabindex="-1" aria-hidden="true"></button>
@@ -118,6 +110,7 @@
     </form>
   </main>
 
+  <!-- Sticky CTA móvil -->
   <div class="sticky-cta hidden" id="sticky-cta" aria-label="Acción rápida">
     <div style="display:flex;flex-direction:column;">
       <b id="sticky-title">Coche</b>
@@ -126,6 +119,7 @@
     <a href="#contact-form" class="cta-btn">Solicitar info</a>
   </div>
 
+  <!-- App: carga de coche + galería + lead -->
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -136,9 +130,7 @@
     const params = new URLSearchParams(location.search);
     const carId = params.get('id');
 
-    function sanitizeHTML(s){ return (s ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-    function safeInnerHTML(el, html){ el.innerHTML = html; }
-    function safeTextContent(el, text){ el.textContent = text; }
+    const escapeHTML = s => (s ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
     async function loadCar() {
       if (!carId) { document.body.innerHTML = '<p style="padding:24px">Falta el parámetro <b>id</b>.</p>'; return; }
@@ -153,7 +145,7 @@
 
       if (error || !data) { document.body.innerHTML = '<p style="padding:24px">Coche no encontrado.</p>'; return; }
 
-      const title = `${data.marca} ${data.modelo}${data.version ? ' ' + data.version : ''} ${data.anio || ''}`.trim();
+      const title = `${data.marca ?? ''} ${data.modelo ?? ''}${data.version ? ' ' + data.version : ''} ${data.anio ?? ''}`.trim();
       $('#car-title').textContent = title;
       document.title = `${title} — Detalle del vehículo`;
 
@@ -182,14 +174,9 @@
       if (priceMeta) priceMeta.setAttribute('content', data.precio_objetivo ? String(Number(data.precio_objetivo)) : "");
 
       const jsonld = {
-        "@context":"https://schema.org",
-        "@type":"Product",
-        "name": title,
-        "description": data.descripcion || "Vehículo premium disponible.",
-        "image": data.imagenes,
-        "brand": data.marca,
-        "model": data.modelo,
-        "sku": data.id,
+        "@context":"https://schema.org","@type":"Product",
+        "name": title, "description": data.descripcion || "Vehículo premium disponible.",
+        "image": data.imagenes, "brand": data.marca, "model": data.modelo, "sku": data.id,
         "offers": {"@type":"Offer","price": data.precio_objetivo || "0","priceCurrency":"EUR","availability":"https://schema.org/InStock","url": canonicalHref}
       };
       document.getElementById("car-jsonld").textContent = JSON.stringify(jsonld);
@@ -204,7 +191,12 @@
         gallery.innerHTML = `
           <div class="slider" aria-label="Carrusel de imágenes">
             <div class="slider-track">
-              ${images.map((src,i) => `<img class="slide" src="${src}" alt="${sanitizeHTML(title)} — imagen ${i+1}" loading="lazy" decoding="async" width="1200" height="800">`).join('')}
+              ${images.map((src,i) => `
+                <img class="slide"
+                     src="${src}"
+                     alt="${escapeHTML(title)} — imagen ${i+1}"
+                     ${i===0?'loading="eager" fetchpriority="high"':'loading="lazy"'}
+                     decoding="async" width="1200" height="800">`).join('')}
             </div>
             <button class="nav-btn nav-prev" aria-label="Imagen anterior">
               <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -232,20 +224,16 @@
           if (counter) counter.textContent = `${idx+1} / ${N}`;
         };
 
-        let timer = null;
-        const start = () => { if (N <= 1) return; clearInterval(timer); timer = setInterval(()=>set(idx+1), 4000); };
-        const stop  = () => { if (timer) clearInterval(timer); timer = null; };
+        let timer=null;
+        const start = ()=>{ if (N<=1) return; clearInterval(timer); timer=setInterval(()=>set(idx+1), 4000); };
+        const stop  = ()=>{ if (timer) clearInterval(timer); timer=null; };
 
-        prevBtn.onclick = () => { stop(); set(idx - 1); start(); };
-        nextBtn.onclick = () => { stop(); set(idx + 1); start(); };
-        if (N <= 1) { prevBtn.disabled = true; nextBtn.disabled = true; }
-        dots.forEach(d => d.onclick = () => { stop(); set(+d.dataset.i); start(); });
+        prevBtn.onclick = ()=>{ stop(); set(idx-1); start(); };
+        nextBtn.onclick = ()=>{ stop(); set(idx+1); start(); };
+        if (N<=1){ prevBtn.disabled = true; nextBtn.disabled = true; }
+        dots.forEach(d => d.onclick = ()=>{ stop(); set(+d.dataset.i); start(); };
 
-        gallery.addEventListener('mouseenter', stop);
-        gallery.addEventListener('mouseleave', start);
-        document.addEventListener('visibilitychange', () => { document.hidden ? stop() : start(); });
-
-        // Gestos
+        // Gestos táctiles
         let startX=0, dx=0, touching=false;
         const onDown = (e)=>{touching=true; startX=(e.touches?.[0].clientX ?? e.clientX); stop();};
         const onMove = (e)=>{if(!touching) return; const x=(e.touches?.[0].clientX ?? e.clientX); dx=x-startX;};
@@ -253,9 +241,6 @@
         gallery.addEventListener('touchstart', onDown, {passive:true});
         gallery.addEventListener('touchmove',  onMove, {passive:true});
         gallery.addEventListener('touchend',   onUp);
-        gallery.addEventListener('mousedown',  onDown);
-        gallery.addEventListener('mousemove',  onMove);
-        gallery.addEventListener('mouseup',    onUp);
 
         set(0); start();
       }
@@ -270,25 +255,19 @@
         } else {
           videoBox.innerHTML = `<iframe src="${url}" allowfullscreen loading="lazy"></iframe>`;
         }
-        videoBox.style.display = '';
-      } else {
-        videoBox.innerHTML = '';
-        videoBox.style.display = 'none';
-      }
+      } else { videoBox.innerHTML = ''; }
 
       /* Specs + Descripción */
       const specsEl = $('#car-specs');
-      safeInnerHTML(specsEl, `
+      specsEl.innerHTML = `
         <p><b>Kilómetros:</b> ${data.km?.toLocaleString('es-ES') ?? '-'}</p>
-        <p><b>Combustible:</b> ${sanitizeHTML(data.combustible) ?? '-'}</p>
-        <p><b>Caja:</b> ${sanitizeHTML(data.caja) ?? '-'}</p>
+        <p><b>Combustible:</b> ${escapeHTML(data.combustible) ?? '-'}</p>
+        <p><b>Caja:</b> ${escapeHTML(data.caja) ?? '-'}</p>
         <p><b>Precio:</b> ${data.precio_objetivo ? Number(data.precio_objetivo).toLocaleString('es-ES')+' €' : 'Bajo pedido'}</p>
-        ${data.extras ? `<p><b>Extras:</b> ${sanitizeHTML(data.extras)}</p>` : ''}
+        ${data.extras ? `<p><b>Extras:</b> ${escapeHTML(data.extras)}</p>` : ''}
         <h3>Descripción</h3>
-        <div class="desc"></div>
-      `);
-      const descDiv = specsEl.querySelector('.desc');
-      safeTextContent(descDiv, (data.descripcion && data.descripcion.trim()) ? data.descripcion.trim() : 'Sin descripción');
+        <div class="desc">${escapeHTML((data.descripcion || 'Sin descripción'))}</div>
+      `;
 
       /* Sticky CTA */
       const bar = document.getElementById('sticky-cta');
@@ -296,23 +275,19 @@
       const titleEl = document.getElementById('sticky-title');
       titleEl.textContent = title;
       priceEl.textContent = data.precio_objetivo ? `${Number(data.precio_objetivo).toLocaleString('es-ES')} €` : 'Bajo pedido';
-
       const form = document.getElementById('contact-form');
-      const io = new IntersectionObserver((entries)=>{
-        const visible = entries[0].isIntersecting;
-        bar.classList.toggle('hidden', visible);
-      }, { threshold: 0.35 });
+      const io = new IntersectionObserver((entries)=>{ bar.classList.toggle('hidden', entries[0].isIntersecting); }, { threshold: 0.35 });
       io.observe(form);
 
       $('#coche_interes').value = title;
     }
     loadCar();
 
-    // Lead: enviar al backend
-    const formEl = document.getElementById('contact-form');
-    formEl?.addEventListener('submit', async (e) => {
+    // Envío lead
+    document.getElementById('contact-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const fd = new FormData(formEl);
+      const fd = new FormData(e.currentTarget);
+
       const payload = {
         nombre: (fd.get('nombre')||'').toString().trim(),
         email:  (fd.get('email') ||'').toString().trim(),
@@ -323,7 +298,6 @@
       };
 
       const statusEl = document.getElementById('form-status');
-
       if (!Validator.required(payload.nombre, 2)) { statusEl.textContent = 'Nombre inválido.'; return; }
       if (!Validator.email(payload.email)) { statusEl.textContent = 'Email inválido.'; return; }
       if (!Validator.required(payload.mensaje, 10)) { statusEl.textContent = 'Mensaje demasiado corto.'; return; }
@@ -337,7 +311,7 @@
         });
         if (!res.ok) throw 0;
         statusEl.textContent = '¡Gracias! Te contactaremos en breve.';
-        formEl.reset();
+        e.currentTarget.reset();
         notify?.success?.('Lead enviado correctamente');
       } catch {
         statusEl.textContent = 'Error enviando lead.';
@@ -346,7 +320,7 @@
     });
   </script>
 
-  <!-- Menú (mismo JS que stock/index) -->
+  <!-- Menú (drawer móvil + accesibilidad) -->
   <script>
     (() => {
       const toggleBtn = document.getElementById('nav-toggle');
@@ -396,5 +370,3 @@
   </script>
 </body>
 </html>
-
-<!-- cambiando -->

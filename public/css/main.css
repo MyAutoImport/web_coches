@@ -57,10 +57,18 @@ h2{font-size:1.8rem;text-align:center;color:#fff}
 p{margin-bottom:12px;color:rgba(249,250,251,.9)}
 
 /* Home (hero+cards) */
-section{max-width:1200px;margin:0 auto;padding:80px 24px}
+section{
+  max-width:1200px;margin:0 auto;padding:80px 24px;
+  content-visibility:auto;             /* no pintar hasta que haga falta */
+  contain-intrinsic-size:1px 1000px;   /* evita saltos de layout */
+}
 .hero{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
 .hero img{width:100%;border-radius:16px;box-shadow:var(--shadow);display:block}
-@media (max-width:900px){.hero{grid-template-columns:1fr;text-align:center}}
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr;text-align:center}
+  /* sombras más baratas para reducir trabajo de pintura */
+  .card{box-shadow:0 6px 18px rgba(0,0,0,.28)}
+}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-top:40px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:0 4px 16px rgba(0,0,0,.35);transition:.2s}
 .card:hover{transform:translateY(-4px);box-shadow:0 10px 28px rgba(0,0,0,.45)}
@@ -333,5 +341,3 @@ main .card .muted{color:var(--muted)}
   border:1px solid var(--nav-border); text-align:center; font-weight:700;
 }
 .drawer-user .links a:hover, .drawer-user .links button:hover{ background:rgba(255,255,255,.06) }
-
-
