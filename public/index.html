@@ -22,184 +22,194 @@
   <link rel="alternate icon" href="/favicon.ico" sizes="any">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest?v=2">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#ffffff">
 
-  <!-- Auth (tu widget) -->
+  <!-- Auth -->
   <script src="/api/public-config.js"></script>
   <script type="module" src="/js/auth-widget.js"></script>
 
-  <!-- Fuentes -->
+  <!-- Fuente -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- CSS (usa SOLO main.css; quita emergent.css para esta página) -->
-  <link rel="stylesheet" href="/css/main.css">
+  <!-- SOLO emergent.css -->
+  <link rel="stylesheet" href="/css/emergent.css">
 </head>
-<body>
+<body class="bg-white text-slate-900 antialiased">
   <!-- Header -->
-  <header class="site-header" role="banner">
-    <div class="nav-wrap">
-      <a class="brand" href="/" aria-label="Inicio">
-        <span class="brand-logo" aria-hidden="true">🚗</span>
+  <header class="sticky top-0 z-50 border-b border-slate-100/80 bg-white/90 backdrop-blur-md">
+    <div class="mx-auto max-w-7xl px-4 lg:px-8 py-4 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3 font-extrabold text-slate-900">
+        <span class="inline-grid place-items-center w-9 h-9 rounded-xl bg-slate-100">🚗</span>
         <span>Autolimport Iberia</span>
       </a>
 
-      <button id="nav-toggle" class="nav-toggle" aria-label="Abrir menú" aria-controls="mobile-drawer" aria-expanded="false">
-        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
-      </button>
-
-      <nav class="nav-desktop" aria-label="Menú principal">
-        <a href="/" class="active">Inicio</a>
-        <a href="/stock.html">Stock</a>
-        <div id="user-nav" class="user-nav"></div>
-        <a href="/#contacto" class="btn primary">Contactar</a>
+      <nav class="hidden md:flex items-center gap-6">
+        <a href="/" class="text-slate-700 hover:text-slate-900 font-medium">Inicio</a>
+        <a href="/stock.html" class="text-slate-700 hover:text-slate-900 font-medium">Stock</a>
+        <div id="user-nav" class="text-slate-700"></div>
+        <a href="/#contacto" class="inline-flex h-10 px-4 items-center justify-center rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-colors">Contactar</a>
       </nav>
+
+      <!-- botón móvil -->
+      <button id="nav-toggle" class="md:hidden inline-flex flex-col gap-1.5 p-2 rounded-md border border-slate-200" aria-label="Abrir menú" aria-controls="mobile-drawer" aria-expanded="false">
+        <span class="w-6 h-0.5 bg-slate-900"></span>
+        <span class="w-6 h-0.5 bg-slate-900"></span>
+        <span class="w-6 h-0.5 bg-slate-900"></span>
+      </button>
     </div>
 
     <!-- Drawer móvil -->
-    <div id="mobile-drawer" class="drawer" role="dialog" aria-modal="true" aria-label="Menú">
-      <div class="drawer-inner">
-        <div class="drawer-top">
-          <span class="drawer-title">Menú</span>
-          <button class="drawer-close" aria-label="Cerrar menú">✕</button>
+    <div id="mobile-drawer" class="fixed inset-0 z-50 hidden">
+      <button class="drawer-backdrop absolute inset-0 bg-black/40"></button>
+      <div class="drawer-inner absolute right-0 top-0 h-full w-[85%] max-w-sm bg-white shadow-2xl p-6 flex flex-col">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+          <span class="font-semibold">Menú</span>
+          <button class="drawer-close text-slate-600 text-xl" aria-label="Cerrar menú">✕</button>
         </div>
-        <nav class="drawer-nav" aria-label="Navegación móvil">
-          <a href="/" class="drawer-link active">Inicio</a>
-          <a href="/stock.html" class="drawer-link">Stock</a>
-          <a href="/#contacto" class="drawer-link btn primary" style="text-align:center;">Contactar</a>
+        <nav class="flex flex-col gap-3 py-4 text-slate-800">
+          <a href="/" class="py-2">Inicio</a>
+          <a href="/stock.html" class="py-2">Stock</a>
+          <a href="/#contacto" class="inline-flex h-10 px-4 items-center justify-center rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-colors mt-2">Contactar</a>
         </nav>
-        <div id="user-nav-mobile" class="drawer-user" aria-label="Estado de sesión"></div>
-        <div style="height:calc(12px + env(safe-area-inset-bottom,0px))"></div>
+        <div id="user-nav-mobile" class="mt-auto text-slate-700"></div>
       </div>
-      <button class="drawer-backdrop" tabindex="-1" aria-hidden="true"></button>
     </div>
   </header>
 
   <main>
     <!-- HERO -->
-    <section class="hero">
-      <div class="hero-inner">
-        <div class="hero-copy">
-          <h1>Vehículos Premium<br>desde Alemania</h1>
-          <p class="subtitle">
-            Importamos directamente desde Alemania los mejores vehículos
-            con garantía completa y la máxima calidad alemana.
+    <section class="relative border-b border-slate-100 bg-[radial-gradient(circle_at_20%_5%,rgba(59,130,246,.08),transparent_50%),radial-gradient(circle_at_90%_10%,rgba(59,130,246,.06),transparent_50%)]">
+      <div class="mx-auto max-w-7xl px-4 lg:px-8 py-16 lg:py-24 grid lg:grid-cols-2 gap-10 items-center">
+        <div>
+          <h1 class="text-4xl lg:text-6xl font-extrabold tracking-tight text-slate-900">
+            Vehículos Premium<br>desde Alemania
+          </h1>
+          <p class="mt-4 text-lg text-slate-600 max-w-xl">
+            Importamos directamente desde Alemania los mejores vehículos con garantía completa y la máxima calidad alemana.
           </p>
-          <div class="hero-cta">
-            <a class="btn primary lg" href="/stock.html">Ver Stock Disponible</a>
-            <a class="btn outline lg" href="/#contacto">Contactar Ahora</a>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <a href="/stock.html" class="inline-flex h-12 px-6 items-center justify-center rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-colors">Ver Stock Disponible</a>
+            <a href="/#contacto" class="inline-flex h-12 px-6 items-center justify-center rounded-full border border-slate-300 text-slate-900 font-semibold hover:bg-slate-50 transition-colors">Contactar Ahora</a>
           </div>
 
-          <div class="stats">
-            <div class="stat">
-              <div class="stat-num">15+</div>
-              <div class="stat-label">Años de experiencia</div>
+          <div class="mt-8 grid grid-cols-3 gap-3 max-w-lg">
+            <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div class="text-2xl font-extrabold">15+</div>
+              <div class="text-sm text-slate-500">Años de experiencia</div>
             </div>
-            <div class="stat">
-              <div class="stat-num">500+</div>
-              <div class="stat-label">Vehículos importados</div>
+            <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div class="text-2xl font-extrabold">500+</div>
+              <div class="text-sm text-slate-500">Vehículos importados</div>
             </div>
-            <div class="stat">
-              <div class="stat-num">100%</div>
-              <div class="stat-label">Garantía completa</div>
+            <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div class="text-2xl font-extrabold">100%</div>
+              <div class="text-sm text-slate-500">Garantía completa</div>
             </div>
           </div>
         </div>
 
-        <figure class="hero-media">
-          <img src="/img/hero-bmw.jpg" alt="BMW en carretera, importación premium" loading="eager" decoding="async" width="1280" height="900">
+        <figure class="rounded-3xl overflow-hidden shadow-2xl bg-slate-50">
+          <img src="/img/hero-bmw.jpg" alt="BMW en carretera, importación premium" class="w-full h-full object-cover">
         </figure>
       </div>
     </section>
 
-    <!-- Por qué elegirnos -->
-    <section class="features">
-      <h2>¿Por qué elegirnos?</h2>
-      <p class="section-sub">La confianza de nuestros clientes nos avala</p>
+    <!-- FEATURES -->
+    <section class="mx-auto max-w-7xl px-4 lg:px-8 py-12">
+      <h2 class="text-2xl font-bold text-slate-900">¿Por qué elegirnos?</h2>
+      <p class="text-slate-600 mt-1">La confianza de nuestros clientes nos avala</p>
 
-      <div class="feature-grid">
-        <article class="card">
-          <div class="icon">🛡️</div>
-          <h3>Garantía Completa</h3>
-          <p>Todos nuestros vehículos cuentan con garantía europea oficial.</p>
+      <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div class="text-xl">🛡️</div>
+          <h3 class="mt-2 font-semibold text-slate-900">Garantía Completa</h3>
+          <p class="text-slate-600 text-sm mt-1">Todos nuestros vehículos cuentan con garantía europea oficial.</p>
         </article>
-        <article class="card">
-          <div class="icon">🔎</div>
-          <h3>Inspección Total</h3>
-          <p>Informe completo, historial y verificación técnica antes de la compra.</p>
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div class="text-xl">🔎</div>
+          <h3 class="mt-2 font-semibold text-slate-900">Inspección Total</h3>
+          <p class="text-slate-600 text-sm mt-1">Informe completo, historial y verificación técnica antes de la compra.</p>
         </article>
-        <article class="card">
-          <div class="icon">⚡</div>
-          <h3>Proceso Rápido</h3>
-          <p>Gestión integral y entrega ágil directamente desde Alemania.</p>
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div class="text-xl">⚡</div>
+          <h3 class="mt-2 font-semibold text-slate-900">Proceso Rápido</h3>
+          <p class="text-slate-600 text-sm mt-1">Gestión integral y entrega ágil directamente desde Alemania.</p>
         </article>
-        <article class="card">
-          <div class="icon">⭐</div>
-          <h3>Calidad Premium</h3>
-          <p>Solo vehículos de origen contrastado y mantenimiento al día.</p>
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div class="text-xl">⭐</div>
+          <h3 class="mt-2 font-semibold text-slate-900">Calidad Premium</h3>
+          <p class="text-slate-600 text-sm mt-1">Solo vehículos de origen contrastado y mantenimiento al día.</p>
         </article>
       </div>
     </section>
 
-    <!-- Contacto -->
-    <section id="contacto" class="contact">
-      <div class="contact-inner">
-        <h2>¿Buscas un vehículo específico?</h2>
-        <p class="section-sub">Cuéntanos y te ayudamos a encontrarlo.</p>
+    <!-- CONTACTO -->
+    <section id="contacto" class="border-t border-slate-100 bg-slate-50/50">
+      <div class="mx-auto max-w-5xl px-4 lg:px-8 py-12">
+        <h2 class="text-2xl font-bold text-slate-900">¿Buscas un vehículo específico?</h2>
+        <p class="text-slate-600 mt-1">Cuéntanos y te ayudamos a encontrarlo.</p>
 
-        <form id="contact-form" class="contact-form" novalidate>
-          <div class="grid">
-            <div class="col">
-              <label for="nombre">Nombre</label>
-              <input type="text" id="nombre" name="nombre" placeholder="Nombre" required minlength="2" maxlength="100">
+        <form id="contact-form" class="mt-6 space-y-4" novalidate>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label for="nombre" class="block text-sm font-semibold text-slate-800 mb-1">Nombre</label>
+              <input id="nombre" name="nombre" type="text" placeholder="Nombre" required minlength="2" maxlength="100"
+                     class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-slate-900/10">
             </div>
-            <div class="col">
-              <label for="email">Email</label>
-              <input type="email" id="email" name="email" placeholder="Email" required maxlength="254">
+            <div>
+              <label for="email" class="block text-sm font-semibold text-slate-800 mb-1">Email</label>
+              <input id="email" name="email" type="email" placeholder="Email" required maxlength="254"
+                     class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-slate-900/10">
             </div>
           </div>
-          <label for="mensaje">Mensaje</label>
-          <textarea id="mensaje" name="mensaje" placeholder="Qué necesitas…" rows="4" required minlength="10" maxlength="2000"></textarea>
 
-          <div class="form-actions">
-            <button class="btn primary" type="submit">Enviar</button>
-            <p id="form-status" aria-live="polite"></p>
+          <div>
+            <label for="mensaje" class="block text-sm font-semibold text-slate-800 mb-1">Mensaje</label>
+            <textarea id="mensaje" name="mensaje" rows="4" placeholder="Qué necesitas…" required minlength="10" maxlength="2000"
+                      class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-slate-900/10"></textarea>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <button class="inline-flex h-11 px-6 items-center justify-center rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-colors" type="submit">Enviar</button>
+            <p id="form-status" class="text-slate-600"></p>
           </div>
         </form>
       </div>
     </section>
   </main>
 
-  <footer class="site-footer">
-    <div class="footer-inner">
-      <div class="col">
-        <div class="brand mini">
-          <span class="brand-logo">🚗</span> Autolimport Iberia
+  <footer class="border-t border-slate-100 bg-white">
+    <div class="mx-auto max-w-7xl px-4 lg:px-8 py-8 grid gap-6 md:grid-cols-3">
+      <div>
+        <div class="flex items-center gap-2 font-extrabold text-slate-900">
+          <span class="inline-grid place-items-center w-8 h-8 rounded-lg bg-slate-100">🚗</span>
+          <span>Autolimport Iberia</span>
         </div>
-        <p>Especialistas en importación de vehículos premium desde Alemania.</p>
+        <p class="text-slate-600 mt-2">Especialistas en importación de vehículos premium desde Alemania.</p>
       </div>
-      <div class="col">
-        <h4>Servicios</h4>
-        <ul>
+      <div>
+        <h4 class="font-semibold text-slate-900 mb-2">Servicios</h4>
+        <ul class="text-slate-600 space-y-1">
           <li>Importación desde Alemania</li>
           <li>Gestión de documentación</li>
           <li>Inspección técnica</li>
           <li>Financiación</li>
         </ul>
       </div>
-      <div class="col">
-        <h4>Contacto</h4>
-        <ul>
+      <div>
+        <h4 class="font-semibold text-slate-900 mb-2">Contacto</h4>
+        <ul class="text-slate-600 space-y-1">
           <li>Madrid, España</li>
-          <li><a href="mailto:info@myautoimport.es">info@myautoimport.es</a></li>
+          <li><a class="underline underline-offset-4 hover:text-slate-900" href="mailto:info@myautoimport.es">info@myautoimport.es</a></li>
         </ul>
       </div>
     </div>
-    <div class="copy">© <span id="year"></span> My Auto Import. Todos los derechos reservados.</div>
+    <div class="border-t border-slate-100 text-center text-slate-500 py-4">© <span id="year"></span> My Auto Import. Todos los derechos reservados.</div>
   </footer>
 
-  <!-- Utils + validación -->
+  <!-- Utils -->
   <script src="/js/utils.js" defer></script>
 
   <script>
@@ -240,58 +250,23 @@
       }
     });
 
-    // Drawer accesible
+    // Drawer móvil
     (() => {
       const toggleBtn = document.getElementById('nav-toggle');
       const drawer    = document.getElementById('mobile-drawer');
       const closeBtn  = drawer?.querySelector('.drawer-close');
       if (!toggleBtn || !drawer) return;
 
-      const focusableSel = ['a[href]','button:not([disabled])','input','select','textarea','[tabindex]:not([tabindex="-1"])'].join(',');
-      let lastFocused = null;
+      const open = () => { drawer.classList.remove('hidden'); };
+      const close = () => { drawer.classList.add('hidden'); };
 
-      const open = () => {
-        lastFocused = document.activeElement;
-        drawer.classList.add('open');
-        document.body.classList.add('nav-open');
-        toggleBtn.setAttribute('aria-expanded','true');
-        drawer.querySelector(focusableSel)?.focus({preventScroll:true});
-      };
-      const close = () => {
-        drawer.classList.remove('open');
-        document.body.classList.remove('nav-open');
-        toggleBtn.setAttribute('aria-expanded','false');
-        lastFocused?.focus?.({preventScroll:true});
-      };
-      const isOpen = () => drawer.classList.contains('open');
-
-      toggleBtn.addEventListener('click', () => isOpen() ? close() : open(), { passive:true });
-      closeBtn?.addEventListener('click', close, { passive:true });
-
-      window.addEventListener('keydown', (e) => {
-        if (!isOpen()) return;
-        if (e.key === 'Escape') { e.preventDefault(); close(); }
-        if (e.key === 'Tab') {
-          const f = [...drawer.querySelectorAll(focusableSel)];
-          if (!f.length) return;
-          const first = f[0], last = f[f.length-1];
-          if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
-          else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
-        }
-      });
-
-      const reset = () => { drawer.classList.remove('open'); document.body.classList.remove('nav-open'); toggleBtn.setAttribute('aria-expanded','false'); };
-      window.addEventListener('pageshow', reset);
-      window.addEventListener('pagehide', reset);
-      window.addEventListener('beforeunload', reset);
-      document.addEventListener('visibilitychange', ()=>{ if(document.hidden) reset(); });
+      toggleBtn.addEventListener('click', open, { passive: true });
+      closeBtn?.addEventListener('click', close, { passive: true });
+      drawer.querySelector('.drawer-backdrop')?.addEventListener('click', close, { passive: true });
     })();
   </script>
 
-  <!-- Si algún JS del tema nuevo dependía de emergent.js, puedes quitarlo o dejarlo, no afecta a estilos -->
-  <!-- <script src="/js/emergent.js" defer></script> -->
-
-  <!-- Analítica (Cloudflare) -->
+  <!-- Analítica -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"6bacc6c3cd2f482793c643c5fe8df0b7"}'></script>
 </body>
 </html>
