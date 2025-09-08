@@ -36,9 +36,13 @@
   <!-- emergent.css -->
   <link rel="stylesheet" href="/css/emergent.css">
 
-  <!-- Ajuste tipografía global -->
+  <!-- Ajustes globales -->
   <style>
-    body{font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";}
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans",
+                   "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+    }
   </style>
 </head>
 <body class="bg-white text-slate-900 antialiased">
@@ -51,14 +55,20 @@
       </a>
 
       <nav class="hidden md:flex items-center gap-6">
-        <a href="/" class="text-slate-700 hover:text-slate-900 font-medium">Inicio</a>
-        <a href="/stock.html" class="text-slate-700 hover:text-slate-900 font-medium">Stock</a>
+        <a href="/" class="text-slate-900 font-semibold underline underline-offset-8 decoration-slate-300">Inicio</a>
+        <a href="/stock.html" class="text-slate-700 hover:text-slate-900 font-medium transition-colors">Stock</a>
         <div id="user-nav" class="text-slate-700"></div>
-        <a href="/#contacto" class="inline-flex h-10 px-4 items-center justify-center rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-colors">Contactar</a>
+        <a href="/#contacto"
+           class="inline-flex h-10 px-4 items-center justify-center rounded-full bg-slate-900 text-white font-semibold
+                  transition-all duration-200 hover:bg-slate-700 hover:scale-[1.03] active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/20">
+          Contactar
+        </a>
       </nav>
 
       <!-- botón móvil -->
-      <button id="nav-toggle" class="md:hidden inline-flex flex-col gap-1.5 p-2 rounded-md border border-slate-200" aria-label="Abrir menú" aria-controls="mobile-drawer" aria-expanded="false">
+      <button id="nav-toggle"
+              class="md:hidden inline-flex flex-col gap-1.5 p-2 rounded-md border border-slate-200"
+              aria-label="Abrir menú" aria-controls="mobile-drawer" aria-expanded="false">
         <span class="w-6 h-0.5 bg-slate-900"></span>
         <span class="w-6 h-0.5 bg-slate-900"></span>
         <span class="w-6 h-0.5 bg-slate-900"></span>
@@ -66,7 +76,7 @@
     </div>
 
     <!-- Drawer móvil -->
-    <div id="mobile-drawer" class="fixed inset-0 z-50 hidden">
+    <div id="mobile-drawer" class="fixed inset-0 z-50 hidden" aria-hidden="true">
       <button class="drawer-backdrop absolute inset-0 bg-black/40"></button>
       <div class="drawer-inner absolute right-0 top-0 h-full w-[85%] max-w-sm bg-white shadow-2xl p-6 flex flex-col">
         <div class="flex items-center justify-between pb-4 border-b border-slate-100">
@@ -74,9 +84,13 @@
           <button class="drawer-close text-slate-600 text-xl" aria-label="Cerrar menú">✕</button>
         </div>
         <nav class="flex flex-col gap-3 py-4 text-slate-800">
-          <a href="/" class="py-2">Inicio</a>
+          <a href="/" class="py-2 font-medium">Inicio</a>
           <a href="/stock.html" class="py-2">Stock</a>
-          <a href="/#contacto" class="inline-flex h-10 px-4 items-center justify-center rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-colors mt-2">Contactar</a>
+          <a href="/#contacto"
+             class="inline-flex h-10 px-4 items-center justify-center rounded-full bg-slate-900 text-white font-semibold
+                    transition-all duration-200 hover:bg-slate-700 hover:scale-[1.02] active:scale-100 mt-2">
+            Contactar
+          </a>
         </nav>
         <div id="user-nav-mobile" class="mt-auto text-slate-700"></div>
       </div>
@@ -95,8 +109,16 @@
             Importamos directamente desde Alemania los mejores vehículos con garantía completa y la máxima calidad alemana.
           </p>
           <div class="mt-6 flex flex-wrap gap-3">
-            <a href="/stock.html" class="inline-flex h-12 px-6 items-center justify-center rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-colors">Ver Stock Disponible</a>
-            <a href="/#contacto" class="inline-flex h-12 px-6 items-center justify-center rounded-full border border-slate-300 text-slate-900 font-semibold hover:bg-slate-50 transition-colors">Contactar Ahora</a>
+            <a href="/stock.html"
+               class="inline-flex h-12 px-6 items-center justify-center rounded-full bg-slate-900 text-white font-semibold
+                      transition-all duration-200 hover:bg-slate-700 hover:scale-[1.03] active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/20">
+              Ver Stock Disponible
+            </a>
+            <a href="/#contacto"
+               class="inline-flex h-12 px-6 items-center justify-center rounded-full border border-slate-300 text-slate-900 font-semibold
+                      transition-all duration-200 hover:bg-slate-50 hover:scale-[1.02] active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/10">
+              Contactar Ahora
+            </a>
           </div>
 
           <!-- Stats con animación -->
@@ -116,9 +138,15 @@
           </div>
         </div>
 
-        <!-- Imagen hero: altura mínima para evitar colapso -->
-        <figure class="rounded-3xl overflow-hidden shadow-2xl bg-slate-50 lg:h-[500px] min-h-[320px]">
-          <img src="/img/hero-bmw.jpg" alt="BMW en carretera, importación premium" class="w-full h-full object-cover">
+        <!-- Imagen hero con cápsula premium -->
+        <figure class="rounded-[32px] overflow-hidden bg-white/70 ring-1 ring-slate-100 shadow-[0_40px_100px_-40px_rgba(2,6,23,0.25)] lg:h-[500px] min-h-[320px]">
+          <img
+            src="/img/hero-bmw.jpg"
+            alt="BMW en carretera, importación premium"
+            class="w-full h-full object-cover"
+            width="1280" height="900"
+            loading="eager" decoding="async" fetchpriority="high"
+            sizes="(min-width:1024px) 720px, 100vw">
         </figure>
       </div>
     </section>
@@ -179,7 +207,7 @@
           </div>
 
           <div class="flex items-center gap-3">
-            <button class="inline-flex h-11 px-6 items-center justify-center rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-colors" type="submit">Enviar</button>
+            <button class="inline-flex h-11 px-6 items-center justify-center rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-all duration-200 hover:scale-[1.02] active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900/20" type="submit">Enviar</button>
             <p id="form-status" class="text-slate-600"></p>
           </div>
         </form>
@@ -257,19 +285,30 @@
       }
     });
 
-    // Drawer móvil
+    // Drawer móvil accesible + bloqueo de scroll
     (() => {
       const toggleBtn = document.getElementById('nav-toggle');
       const drawer    = document.getElementById('mobile-drawer');
       const closeBtn  = drawer?.querySelector('.drawer-close');
+      const backdrop  = drawer?.querySelector('.drawer-backdrop');
       if (!toggleBtn || !drawer) return;
 
-      const open = () => { drawer.classList.remove('hidden'); toggleBtn.setAttribute('aria-expanded','true'); };
-      const close = () => { drawer.classList.add('hidden'); toggleBtn.setAttribute('aria-expanded','false'); };
+      const open = () => {
+        drawer.classList.remove('hidden');
+        drawer.setAttribute('aria-hidden','false');
+        toggleBtn.setAttribute('aria-expanded','true');
+        document.body.style.overflow = 'hidden';
+      };
+      const close = () => {
+        drawer.classList.add('hidden');
+        drawer.setAttribute('aria-hidden','true');
+        toggleBtn.setAttribute('aria-expanded','false');
+        document.body.style.overflow = '';
+      };
 
       toggleBtn.addEventListener('click', open, { passive: true });
       closeBtn?.addEventListener('click', close, { passive: true });
-      drawer.querySelector('.drawer-backdrop')?.addEventListener('click', close, { passive: true });
+      backdrop?.addEventListener('click', close, { passive: true });
 
       // Cerrar con ESC
       window.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
