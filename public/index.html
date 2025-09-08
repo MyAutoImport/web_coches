@@ -33,21 +33,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- CSS (primero tu base, luego el tema Emergent) -->
-  <!-- <link rel="stylesheet" href="/css/main.css"> -->
-  <link rel="stylesheet" href="/css/emergent.css">
-
-  <!-- Override mínimo para fondo/contraste global -->
-  <style>
-    body{
-      background:#0b1220;
-      color:#e5e7eb;
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans";
-    }
-  </style>
+  <!-- CSS (usa SOLO main.css; quita emergent.css para esta página) -->
+  <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
-  <!-- Header (fuera de #em-app si lo quieres reutilizar en otras páginas) -->
+  <!-- Header -->
   <header class="site-header" role="banner">
     <div class="nav-wrap">
       <a class="brand" href="/" aria-label="Inicio">
@@ -86,132 +76,128 @@
     </div>
   </header>
 
-  <!-- ===== Todo el diseño nuevo envuelto en #em-app ===== -->
-  <div id="em-app" role="main" aria-label="Landing My Auto Import">
-    <main>
-      <!-- HERO -->
-      <section class="hero">
-        <div class="hero-inner">
-          <div class="hero-copy">
-            <h1>Vehículos Premium<br>desde Alemania</h1>
-            <p class="subtitle">
-              Importamos directamente desde Alemania los mejores vehículos
-              con garantía completa y la máxima calidad alemana.
-            </p>
-            <div class="hero-cta">
-              <a class="btn primary lg" href="/stock.html">Ver Stock Disponible</a>
-              <a class="btn outline lg" href="/#contacto">Contactar Ahora</a>
-            </div>
-
-            <div class="stats">
-              <div class="stat">
-                <div class="stat-num">15+</div>
-                <div class="stat-label">Años de experiencia</div>
-              </div>
-              <div class="stat">
-                <div class="stat-num">500+</div>
-                <div class="stat-label">Vehículos importados</div>
-              </div>
-              <div class="stat">
-                <div class="stat-num">100%</div>
-                <div class="stat-label">Garantía completa</div>
-              </div>
-            </div>
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <h1>Vehículos Premium<br>desde Alemania</h1>
+          <p class="subtitle">
+            Importamos directamente desde Alemania los mejores vehículos
+            con garantía completa y la máxima calidad alemana.
+          </p>
+          <div class="hero-cta">
+            <a class="btn primary lg" href="/stock.html">Ver Stock Disponible</a>
+            <a class="btn outline lg" href="/#contacto">Contactar Ahora</a>
           </div>
 
-          <figure class="hero-media">
-            <img src="/img/hero-bmw.jpg" alt="BMW en carretera, importación premium" loading="eager" decoding="async" width="1280" height="900">
-          </figure>
-        </div>
-      </section>
-
-      <!-- Por qué elegirnos -->
-      <section class="features">
-        <h2>¿Por qué elegirnos?</h2>
-        <p class="section-sub">La confianza de nuestros clientes nos avala</p>
-
-        <div class="feature-grid">
-          <article class="card">
-            <div class="icon">🛡️</div>
-            <h3>Garantía Completa</h3>
-            <p>Todos nuestros vehículos cuentan con garantía europea oficial.</p>
-          </article>
-          <article class="card">
-            <div class="icon">🔎</div>
-            <h3>Inspección Total</h3>
-            <p>Informe completo, historial y verificación técnica antes de la compra.</p>
-          </article>
-          <article class="card">
-            <div class="icon">⚡</div>
-            <h3>Proceso Rápido</h3>
-            <p>Gestión integral y entrega ágil directamente desde Alemania.</p>
-          </article>
-          <article class="card">
-            <div class="icon">⭐</div>
-            <h3>Calidad Premium</h3>
-            <p>Solo vehículos de origen contrastado y mantenimiento al día.</p>
-          </article>
-        </div>
-      </section>
-
-      <!-- Contacto -->
-      <section id="contacto" class="contact">
-        <div class="contact-inner">
-          <h2>¿Buscas un vehículo específico?</h2>
-          <p class="section-sub">Cuéntanos y te ayudamos a encontrarlo.</p>
-
-          <form id="contact-form" class="contact-form" novalidate>
-            <div class="grid">
-              <div class="col">
-                <label for="nombre">Nombre</label>
-                <input type="text" id="nombre" name="nombre" placeholder="Nombre" required minlength="2" maxlength="100">
-              </div>
-              <div class="col">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="Email" required maxlength="254">
-              </div>
+          <div class="stats">
+            <div class="stat">
+              <div class="stat-num">15+</div>
+              <div class="stat-label">Años de experiencia</div>
             </div>
-            <label for="mensaje">Mensaje</label>
-            <textarea id="mensaje" name="mensaje" placeholder="Qué necesitas…" rows="4" required minlength="10" maxlength="2000"></textarea>
-
-            <div class="form-actions">
-              <button class="btn primary" type="submit">Enviar</button>
-              <p id="form-status" aria-live="polite"></p>
+            <div class="stat">
+              <div class="stat-num">500+</div>
+              <div class="stat-label">Vehículos importados</div>
             </div>
-          </form>
-        </div>
-      </section>
-    </main>
-
-    <footer class="site-footer">
-      <div class="footer-inner">
-        <div class="col">
-          <div class="brand mini">
-            <span class="brand-logo">🚗</span> Autolimport Iberia
+            <div class="stat">
+              <div class="stat-num">100%</div>
+              <div class="stat-label">Garantía completa</div>
+            </div>
           </div>
-          <p>Especialistas en importación de vehículos premium desde Alemania.</p>
         </div>
-        <div class="col">
-          <h4>Servicios</h4>
-          <ul>
-            <li>Importación desde Alemania</li>
-            <li>Gestión de documentación</li>
-            <li>Inspección técnica</li>
-            <li>Financiación</li>
-          </ul>
-        </div>
-        <div class="col">
-          <h4>Contacto</h4>
-          <ul>
-            <li>Madrid, España</li>
-            <li><a href="mailto:info@myautoimport.es">info@myautoimport.es</a></li>
-          </ul>
-        </div>
+
+        <figure class="hero-media">
+          <img src="/img/hero-bmw.jpg" alt="BMW en carretera, importación premium" loading="eager" decoding="async" width="1280" height="900">
+        </figure>
       </div>
-      <div class="copy">© <span id="year"></span> My Auto Import. Todos los derechos reservados.</div>
-    </footer>
-  </div>
-  <!-- ===== FIN #em-app ===== -->
+    </section>
+
+    <!-- Por qué elegirnos -->
+    <section class="features">
+      <h2>¿Por qué elegirnos?</h2>
+      <p class="section-sub">La confianza de nuestros clientes nos avala</p>
+
+      <div class="feature-grid">
+        <article class="card">
+          <div class="icon">🛡️</div>
+          <h3>Garantía Completa</h3>
+          <p>Todos nuestros vehículos cuentan con garantía europea oficial.</p>
+        </article>
+        <article class="card">
+          <div class="icon">🔎</div>
+          <h3>Inspección Total</h3>
+          <p>Informe completo, historial y verificación técnica antes de la compra.</p>
+        </article>
+        <article class="card">
+          <div class="icon">⚡</div>
+          <h3>Proceso Rápido</h3>
+          <p>Gestión integral y entrega ágil directamente desde Alemania.</p>
+        </article>
+        <article class="card">
+          <div class="icon">⭐</div>
+          <h3>Calidad Premium</h3>
+          <p>Solo vehículos de origen contrastado y mantenimiento al día.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Contacto -->
+    <section id="contacto" class="contact">
+      <div class="contact-inner">
+        <h2>¿Buscas un vehículo específico?</h2>
+        <p class="section-sub">Cuéntanos y te ayudamos a encontrarlo.</p>
+
+        <form id="contact-form" class="contact-form" novalidate>
+          <div class="grid">
+            <div class="col">
+              <label for="nombre">Nombre</label>
+              <input type="text" id="nombre" name="nombre" placeholder="Nombre" required minlength="2" maxlength="100">
+            </div>
+            <div class="col">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" placeholder="Email" required maxlength="254">
+            </div>
+          </div>
+          <label for="mensaje">Mensaje</label>
+          <textarea id="mensaje" name="mensaje" placeholder="Qué necesitas…" rows="4" required minlength="10" maxlength="2000"></textarea>
+
+          <div class="form-actions">
+            <button class="btn primary" type="submit">Enviar</button>
+            <p id="form-status" aria-live="polite"></p>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="col">
+        <div class="brand mini">
+          <span class="brand-logo">🚗</span> Autolimport Iberia
+        </div>
+        <p>Especialistas en importación de vehículos premium desde Alemania.</p>
+      </div>
+      <div class="col">
+        <h4>Servicios</h4>
+        <ul>
+          <li>Importación desde Alemania</li>
+          <li>Gestión de documentación</li>
+          <li>Inspección técnica</li>
+          <li>Financiación</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h4>Contacto</h4>
+        <ul>
+          <li>Madrid, España</li>
+          <li><a href="mailto:info@myautoimport.es">info@myautoimport.es</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="copy">© <span id="year"></span> My Auto Import. Todos los derechos reservados.</div>
+  </footer>
 
   <!-- Utils + validación -->
   <script src="/js/utils.js" defer></script>
@@ -302,7 +288,8 @@
     })();
   </script>
 
-  <script src="/js/emergent.js" defer></script>
+  <!-- Si algún JS del tema nuevo dependía de emergent.js, puedes quitarlo o dejarlo, no afecta a estilos -->
+  <!-- <script src="/js/emergent.js" defer></script> -->
 
   <!-- Analítica (Cloudflare) -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"6bacc6c3cd2f482793c643c5fe8df0b7"}'></script>
